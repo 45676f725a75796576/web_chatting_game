@@ -18,6 +18,7 @@ The application is a web-based 2D online game with a top-down view, in which pla
 
 The application also includes a chat system where messages appear above the sender’s character and are filtered for inappropriate words. An administrator has the ability to manage users and the application’s content.
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 ---
 
 ## Target Audience
