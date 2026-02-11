@@ -1,6 +1,17 @@
 ## Web chat game
 ---
 
+<details>
+  <summary>Table of Contents</summary>
+  <ol>
+    <li><a href="#web-chat-game">Web Chat Game</a></li>
+    <li><a href="#what-the-application-will-do">What the Application Will Do</a></li>
+    <li><a href="#target-audience">Target Audience</a></li>
+    <li><a href="#core-player-features">Core Player Features</a></li>
+    <li><a href="#built-with">Built With</a></li>
+  </ol>
+</details>
+
 ## What the Application Will Do
 
 The application is a web-based 2D online game with a top-down view, in which players can move through an infinite panel apartment building, communicate with each other, and manage their own apartment. A player can enter individual apartments (if they are not locked), lock their own apartment, travel between floors using an elevator, and customize the appearance of both the player and the apartment using preset options.
