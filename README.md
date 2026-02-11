@@ -1,5 +1,6 @@
-<a id="readme-top"></a>
 ## Web chat game
+<a id="readme-top"></a>
+
 ---
 
 
@@ -21,6 +22,7 @@ The application is a web-based 2D online game with a top-down view, in which pla
 The application also includes a chat system where messages appear above the sender’s character and are filtered for inappropriate words. An administrator has the ability to manage users and the application’s content.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ---
 
 ## Target Audience
@@ -28,6 +30,7 @@ The application also includes a chat system where messages appear above the send
 The application is primarily intended for younger and older players who are interested in simple online social games, communication with other players, and a virtual environment similar to a community apartment building. It can also be used in school projects or as a demonstration of a web-based multiplayer application.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ---
 
 ## Core Player Features
