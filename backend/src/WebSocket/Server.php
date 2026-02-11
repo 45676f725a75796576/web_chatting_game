@@ -39,7 +39,7 @@ class Server implements MessageComponentInterface
                 continue;
             }
 
-            $this->dispatcher->dispatch($from, $packet);
+            $this->dispatcher->dispatch($this->sessions[$from->resourceId], $packet);
         }
     }
 
