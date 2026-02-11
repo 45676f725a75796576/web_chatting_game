@@ -21,9 +21,9 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
     
-    App\WebSocket\Packet\:
-        resource: '../src/WebSocket/Packet'
-        tags: ['app.packet_handler']
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['app.packet_controller']
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

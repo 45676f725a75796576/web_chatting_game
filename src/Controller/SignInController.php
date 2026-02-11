@@ -1,22 +1,22 @@
 <?php
 
-namespace App\WebSocket\Packet;
+namespace App\Controller;
 
-use Ratchet\ConnectionInterface;
+use App\Entity\Session;
 
-class SignInHandler extends AbstractPacketHandler
+class SignInController extends AbstractPacketController
 {
     public function supports(string $type): bool
     {
         return $type === 'sign_in';
     }
 
-    public function handle(ConnectionInterface $connection, array $packet): void
+    public function handle(Session $session, array $packet): void
     {
         $username = $packet['username'] ?? null;
 
         if(!$username) {
-            $this->send($connection, [
+            $this->send($session, [
                 'type' => 'server_sign_in',
                 'state' => 'error',
                 'message' => 'missing username',
@@ -29,7 +29,9 @@ class SignInHandler extends AbstractPacketHandler
 
         // TODO: call the player repository
 
-        $this->send($connection, [
+        $session->data->authenticated = true;
+        
+        $this->send($session, [
             'type' => 'server_sign_in',
             'state' => 'success',
             'identifier_str' => $identifier_str,

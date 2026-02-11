@@ -8,7 +8,7 @@ use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 class PacketDispatcher
 {
     public function __construct(
-        #[TaggedIterator('app.packet_handler')]
+        #[TaggedIterator('app.packet_controller')]
         private iterable $handlers
     ) {}
 
