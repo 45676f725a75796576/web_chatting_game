@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="authContainer">
+        <h1>🎮 Game Login</h1>
+
+        <div class="connection-status">
+            <span class="status-dot disconnected" id="statusDot"></span>
+            <span id="statusText">Connecting...</span>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="authUI.showTab('signIn')">Sign Up</div>
+            <div class="tab" onclick="authUI.showTab('login')">Login</div>
+        </div>
+
+        <div id="signInForm" class="form-container active">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="signInUsername" placeholder="Enter your username" maxlength="20">
+            </div>
+            <button class="btn" onclick="authUI.signIn()">Create Account</button>
+            <div class="hint">Save your identifier after registration</div>
+
+            <button class="btn btn-test" onclick="authUI.quickTestMode()">⚡ Quick Test</button>
+        </div>
+
+        <div id="loginForm" class="form-container">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" id="loginUsername" placeholder="Enter your username" maxlength="20">
+            </div>
+            <div class="input-group">
+                <label>Identifier</label>
+                <input type="text" id="loginIdentifier" placeholder="Paste your identifier">
+            </div>
+            <button class="btn" onclick="authUI.login()">Login</button>
+
+            <button class="btn btn-test" onclick="authUI.quickTestMode()">⚡ Quick Test</button>
+        </div>
+
+        <div id="errorMessage"></div>
+        <div id="successMessage"></div>
+    </div>
+
+    <div id="gameContainer">
+        <h1 class="game-title">
+            🎮 Multiplayer Game
+            <span class="test-mode-badge hidden" id="testBadge">TEST MODE</span>
+        </h1>
+        <p class="info">Controls: <strong>WASD</strong> or <strong>Arrow Keys</strong></p>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <input type="text" id="chatInput" placeholder="Type a message and press Enter..." maxlength="100">
+        <p class="info">Players online: <span id="playerCount">0</span> | Your ID: <span id="myPlayerId">-</span></p>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="NetworkManager.js"></script>
+    <script src="Player.js"></script>
+    <script src="GameRenderer.js"></script>
+    <script src="InputHandler.js"></script>
+    <script src="ChatManager.js"></script>
+    <script src="AuthUI.js"></script>
+    <script src="Game.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
