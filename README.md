@@ -25,6 +25,7 @@ The application also includes a chat system where messages appear above the send
 
 The application is primarily intended for younger and older players who are interested in simple online social games, communication with other players, and a virtual environment similar to a community apartment building. It can also be used in school projects or as a demonstration of a web-based multiplayer application.
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 ---
 
 ## Core Player Features
@@ -37,6 +38,8 @@ Players can:
 - Customize the appearance of both their character and apartment using preset options  
 
 The application also includes a real-time chat system where messages appear above the sender’s character and are filtered for inappropriate words.
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Built With
 
@@ -65,4 +68,5 @@ This section lists the main technologies used to build the project.
 [JavaScript]: https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=black
 [JavaScript-url]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
