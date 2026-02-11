@@ -46,6 +46,8 @@ The application is primarily intended for younger and older players who are inte
 
 ![Use Case Diagram](doc/use_case_diagram.png)
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ### Functional Requirements
 
 | ID | Requirement Description |
