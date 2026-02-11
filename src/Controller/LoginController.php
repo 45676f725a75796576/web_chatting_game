@@ -31,6 +31,8 @@ class LoginController extends AbstractPacketController
         $username = 'test'; 
         $player_id = 0;
 
+        $session->data->authenticated = true;
+
         $this->send($session, [
             'type' => 'server_login',
             'state' => 'success',

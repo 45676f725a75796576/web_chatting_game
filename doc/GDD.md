@@ -12,7 +12,7 @@ Player can lock his apartment.
 Player can travel between floors on elevator by entering player id.  
 Player can select how apartment and player looks from presets.  
 Player can see messages that were sent in last ten seconds above senders head.  
-Player can send messages.  
+Player can send messages.
 Messages are filtered on banned words.
 
 ## Gameloop
