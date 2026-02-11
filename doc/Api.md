@@ -56,7 +56,8 @@ in the multiplayer session the client can send movement commands at any time and
     "type":"server_sign_in",
     "state": "success",
     "identifier_str":<a unique string identifying this user>,
-    "player_id": <id of the player>
+    "player_id": <id of the player>,
+    "img": <url to the player skin>
 }
 ```
 - error
@@ -71,7 +72,8 @@ in the multiplayer session the client can send movement commands at any time and
 ### login
 ```
 {
-    "type": "login"
+    "type": "login",
+    "username": <username>
     "identifier_str": <identifier string>
 }
 ```
@@ -82,8 +84,8 @@ in the multiplayer session the client can send movement commands at any time and
 {
     "type":"server_login",
     "state": "success",
-    "username": <players username>,
-    "player_id": <id of the player>
+    "player_id": <id of the player>,
+    "img": <url to the player skin>
 }
 ```
 - error

@@ -14,12 +14,13 @@ class LoginController extends AbstractPacketController
     public function handle(Session $session, array $packet): void
     {
         $identifier_str = $packet['identifier_str'] ?? null;
+        $username = $packet['username'] ?? null;
 
-        if(!$identifier_str) {
+        if(!$identifier_str || !$username) {
             $this->send($session, [
                 'type' => 'server_login',
                 'state' => 'error',
-                'message' => 'missing identifier_str',
+                'message' => 'missing identifier_str or username',
             ]);
             return;
         }
@@ -28,7 +29,7 @@ class LoginController extends AbstractPacketController
 
 
         // will be returned by a repository
-        $username = 'test'; 
+        $username = 'test';
         $player_id = 0;
 
         $session->data->authenticated = true;
@@ -36,7 +37,6 @@ class LoginController extends AbstractPacketController
         $this->send($session, [
             'type' => 'server_login',
             'state' => 'success',
-            'username' => $username,
             'player_id' => $player_id
         ]);
     }

@@ -1,6 +1,6 @@
 # Game Design Document
 
-*Game made by Erik Loskorikh, Martin Moravek, Maxim Mazuret, Jegor Zujev*
+*Game made by Erik Loskorikh, Martin Moravek, Maxim Mazuret, Jegor Zujev, Tadeáš Máca*
 
 ## Main game mechanics
 
