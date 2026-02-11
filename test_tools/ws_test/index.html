@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Test Tool</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    #log { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin-bottom: 10px; }
+    input[type=text] { width: 300px; }
+    button { margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <h1>WebSocket Test Tool</h1>
+
+  <label>WebSocket URL: </label>
+  <input type="text" id="wsUrl" placeholder="ws://localhost:8080">
+  <button id="connectBtn">Connect</button>
+  <button id="disconnectBtn" disabled>Disconnect</button>
+
+  <div id="log"></div>
+
+  <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+  <button id="sendBtn" disabled>Send</button>
+
+  <script>
+    let ws;
+
+    const logDiv = document.getElementById('log');
+    const connectBtn = document.getElementById('connectBtn');
+    const disconnectBtn = document.getElementById('disconnectBtn');
+    const sendBtn = document.getElementById('sendBtn');
+    const messageInput = document.getElementById('messageInput');
+    const wsUrlInput = document.getElementById('wsUrl');
+
+    function log(message) {
+      logDiv.innerHTML += message + '<br>';
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    connectBtn.addEventListener('click', () => {
+      const url = wsUrlInput.value.trim();
+      if (!url) { alert('Please enter WebSocket URL'); return; }
+
+      ws = new WebSocket(url);
+
+      ws.onopen = () => {
+        log('<b>Connected to ' + url + '</b>');
+        connectBtn.disabled = true;
+        disconnectBtn.disabled = false;
+        sendBtn.disabled = false;
+        messageInput.disabled = false;
+      };
+
+      ws.onmessage = (event) => {
+        log('<span style="color:green;">Received: ' + event.data + '</span>');
+      };
+
+      ws.onerror = (err) => {
+        log('<span style="color:red;">Error: ' + err.message + '</span>');
+      };
+
+      ws.onclose = () => {
+        log('<b>Disconnected</b>');
+        connectBtn.disabled = false;
+        disconnectBtn.disabled = true;
+        sendBtn.disabled = true;
+        messageInput.disabled = true;
+      };
+    });
+
+    disconnectBtn.addEventListener('click', () => {
+      if (ws) ws.close();
+    });
+
+    sendBtn.addEventListener('click', () => {
+      const msg = messageInput.value.trim();
+      if (!msg) return;
+      ws.send(msg);
+      log('<span style="color:blue;">Sent: ' + msg + '</span>');
+      messageInput.value = '';
+    });
+
+    messageInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') sendBtn.click();
+    });
+  </script>
+</body>
+</html>
