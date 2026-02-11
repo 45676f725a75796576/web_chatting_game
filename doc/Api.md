@@ -2,16 +2,46 @@
 *API between the frontend and backend*
 
 ## info
-The communication is through sending JSON packets devided by a new line character. All packets have a "type" string that indicates the packet type.
+The communication is through sending JSON packets divided by a new line character. All packets have a "type" string that indicates the packet type.
 
-## senarios
+## global behaviour
+The user disconnects when the WebSocket closes. On disconnect the server sends a "server_disconnect" packet to all the other clients.
+
+
+## before multiplayer session
 
 ### creating a new user
 1. client sends a json packet of type "sign_in"
 2. server respons with a json packet of type "server_sign_in"
 3. WebSocket session is now authenticated
 
-**sign_in:**
+### login
+1. client sends a json packet of type "login"
+2. server respons with a json packet of type "server_login"
+3. WebSocket session is now authenticated
+
+### joining the server
+1. client sends a "enter_game" packet
+2. server responds with a "server_place" packet
+3. the [multiplayer session](#multiplayer-session) starts
+
+
+## multiplayer session
+in the multiplayer session the client can send movement commands at any time and the server can send player updates at any time
+
+### moving a player in the multiplayer session
+1. client sends a "player_pos" packet
+2. server **does not respond**
+3. server sends a "server_player_pos" packet to all other clients joined in the session
+
+### user moves into another room
+1. client sends a "enter_destination" packet
+2. server responds with packet "server_place"
+3. server sends a "server_disconnect" packet to all other clients joined in the session
+
+## packets
+
+### sign_in
 ```
 {
     "type": "sign_in"
@@ -19,7 +49,7 @@ The communication is through sending JSON packets devided by a new line characte
 }
 ```
 
-**server_sign_in:**
+### server_sign_in
 - success
 ```
 {
@@ -39,11 +69,6 @@ The communication is through sending JSON packets devided by a new line characte
 ```
 
 ### login
-1. client sends a json packet of type "login"
-2. server respons with a json packet of type "server_login"
-3. WebSocket session is now authenticated
-
-**login:**
 ```
 {
     "type": "login"
@@ -51,7 +76,7 @@ The communication is through sending JSON packets devided by a new line characte
 }
 ```
 
-**server_login:**
+### server_login
 - success
 ```
 {
@@ -70,21 +95,14 @@ The communication is through sending JSON packets devided by a new line characte
 }
 ```
 
-### joining the server
-1. client sends a "enter_game" packet
-2. server responds with a "server_place" packet
-3. the [multiplayer session](#multiplayer-session) starts
-
-the user disconnects when the WebSocket closes
-
-**enter_game:**
+### enter_game
 ```
 {
     "type": "enter_game"
 }
 ```
 
-**server_place:**
+### server_place
 ```
 {
     "type": "server_place",
@@ -97,15 +115,7 @@ the user disconnects when the WebSocket closes
 
 ```
 
-### multiplayer session
-in the multiplayer session the client can send movement commands at any time and the server can send player updates at any time
-
-### moving a player in the multiplayer session
-1. client sends a "player_pos" packet
-2. server **does not respond**
-3. server sends a "server_player_pos" packet to all other clients joined in the session
-
-**player_pos:**
+## player_pos
 ```
 {
     "type": "player_pos",
@@ -116,7 +126,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-**server_player_pos:**
+## server_player_pos
 ```
 {
     "type": "server_player_pos",
@@ -128,12 +138,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-### user moves into another room
-1. client sends a "enter_destination" packet
-2. server responds with packet "server_place"
-3. server sends a "server_disconnect" packet to all other clients joined in the session
-
-**enter_destination:**
+## enter_destination
 ```
 {
     "type": "enter_destination",
@@ -142,7 +147,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-**server_disconnect:**
+## server_disconnect
 ```
 {
     "type": "server_disconnect",
