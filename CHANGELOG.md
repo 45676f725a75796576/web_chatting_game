@@ -12,3 +12,11 @@
 - added somewhat funcional login and sign_in logic
 
 ---
+
+**autor**: Erik Loskorikh
+
+**changes:**
+- created README file
+- updates README file
+- update CHANGELOG.md
+---
