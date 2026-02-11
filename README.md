@@ -26,3 +26,31 @@ Players can:
 
 The application also includes a real-time chat system where messages appear above the sender’s character and are filtered for inappropriate words.
 
+### Built With
+
+This section lists the main technologies used to build the project.
+
+* [![PHP][PHP]][PHP-url]
+* [![MySQL][MySQL]][MySQL-url]
+* [![HTML5][HTML5]][HTML5-url]
+* [![CSS3][CSS3]][CSS3-url]
+* [![JavaScript][JavaScript]][JavaScript-url]
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[PHP]: https://img.shields.io/badge/PHP-8.1-777BB4?logo=php&logoColor=white
+[PHP-url]: https://www.php.net/
+
+[MySQL]: https://img.shields.io/badge/MySQL-Database-4479A1?logo=mysql&logoColor=white
+[MySQL-url]: https://www.mysql.com/
+
+[HTML5]: https://img.shields.io/badge/HTML5-Markup-E34F26?logo=html5&logoColor=white
+[HTML5-url]: https://developer.mozilla.org/en-US/docs/Web/HTML
+
+[CSS3]: https://img.shields.io/badge/CSS3-Styles-1572B6?logo=css3&logoColor=white
+[CSS3-url]: https://developer.mozilla.org/en-US/docs/Web/CSS
+
+[JavaScript]: https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=black
+[JavaScript-url]: https://developer.mozilla.org/en-US/docs/Web/JavaScript
+
+
