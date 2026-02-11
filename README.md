@@ -1,5 +1,7 @@
+<a id="readme-top"></a>
 ## Web chat game
 ---
+
 
 <details>
   <summary>Table of Contents</summary>
