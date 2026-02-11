@@ -44,22 +44,7 @@ The application is primarily intended for younger and older players who are inte
 
 ### Use Cases
 
-| Actor | Use Case | Description |
-|-------|----------|-------------|
-| Player | Log in | Player signs into the game. |
-| Player | Move in building | Player moves inside the 2D environment. |
-| Player | Enter apartment | Player enters unlocked apartments. |
-| Player | Lock apartment | Player locks their own apartment. |
-| Player | Use elevator | Player travels between floors. |
-| Player | Send message | Player sends a chat message. |
-| Player | View messages | Player sees messages from others. |
-| Player | Customize appearance | Player changes character and apartment look. |
-| Admin | Manage users | Administrator edits or removes users. |
-| Admin | Moderate chat | Administrator deletes messages or blocks players. |
-
-## UML Use Case Diagram
-
-![Use Case Diagram](docs/use_case_diagram.png)
+![Use Case Diagram](doc/use_case_diagram.png)
 
 ### Functional Requirements
 
