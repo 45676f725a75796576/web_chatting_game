@@ -33,16 +33,44 @@ The application is primarily intended for younger and older players who are inte
 
 ---
 
-## Core Player Features
+## System Analysis
 
-Players can:
+### Stakeholders
 
-- Enter individual apartments (if they are not locked)  
-- Lock their own apartment  
-- Travel between floors using an elevator  
-- Customize the appearance of both their character and apartment using preset options  
+| Stakeholder | Description |
+|-------------|-------------|
+| Player | Uses the application to move in the game world, communicate with others, and manage their apartment. |
+| Administrator | Manages users, moderates content, and ensures safe operation of the system. |
 
-The application also includes a real-time chat system where messages appear above the sender’s character and are filtered for inappropriate words.
+### Use Cases
+
+| Actor | Use Case | Description |
+|-------|----------|-------------|
+| Player | Log in | Player signs into the game. |
+| Player | Move in building | Player moves inside the 2D environment. |
+| Player | Enter apartment | Player enters unlocked apartments. |
+| Player | Lock apartment | Player locks their own apartment. |
+| Player | Use elevator | Player travels between floors. |
+| Player | Send message | Player sends a chat message. |
+| Player | View messages | Player sees messages from others. |
+| Player | Customize appearance | Player changes character and apartment look. |
+| Admin | Manage users | Administrator edits or removes users. |
+| Admin | Moderate chat | Administrator deletes messages or blocks players. |
+
+### Functional Requirements
+
+| ID | Requirement Description |
+|----|-------------------------|
+| FR-01 | The system shall allow a player to log in. |
+| FR-02 | The system shall allow player movement in a 2D building environment. |
+| FR-03 | The system shall allow entry into unlocked apartments. |
+| FR-04 | The system shall allow a player to lock their own apartment. |
+| FR-05 | The system shall allow travel between floors via elevator. |
+| FR-06 | The system shall support real-time sending and receiving of chat messages. |
+| FR-07 | The system shall display recent messages above the sender’s character. |
+| FR-08 | The system shall allow customization of player and apartment appearance. |
+| FR-09 | The system shall allow an administrator to manage users. |
+| FR-10 | The system shall allow an administrator to moderate chat and block players. |
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
