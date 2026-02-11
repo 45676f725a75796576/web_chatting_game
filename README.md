@@ -57,6 +57,10 @@ The application is primarily intended for younger and older players who are inte
 | Admin | Manage users | Administrator edits or removes users. |
 | Admin | Moderate chat | Administrator deletes messages or blocks players. |
 
+## UML Use Case Diagram
+
+![Use Case Diagram](docs/use_case_diagram.png)
+
 ### Functional Requirements
 
 | ID | Requirement Description |
