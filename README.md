@@ -1,5 +1,5 @@
-## Web chat game
 <a id="readme-top"></a>
+## Web chat game
 
 ---
 
