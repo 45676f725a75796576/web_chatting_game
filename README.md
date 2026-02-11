@@ -10,10 +10,18 @@
     <li><a href="#web-chat-game">Web Chat Game</a></li>
     <li><a href="#what-the-application-will-do">What the Application Will Do</a></li>
     <li><a href="#target-audience">Target Audience</a></li>
-    <li><a href="#core-player-features">Core Player Features</a></li>
+    <li>
+      <a href="#system-analysis">System Analysis</a>
+      <ul>
+        <li><a href="#stakeholders">Stakeholders</a></li>
+        <li><a href="#use-cases">Use Cases</a></li>
+        <li><a href="#functional-requirements">Functional Requirements</a></li>
+      </ul>
+    </li>
     <li><a href="#built-with">Built With</a></li>
   </ol>
 </details>
+
 
 ## What the Application Will Do
 
