@@ -3,9 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Session;
+use App\Service\AssetService;
+use App\Service\AuthService;
 
 class SignInController extends AbstractPacketController
 {
+    public function __construct(
+        private AuthService $auth_service,
+        private AssetService $asset_service
+    ) {}
+
     public function supports(string $type): bool
     {
         return $type === 'sign_in';
@@ -24,18 +31,24 @@ class SignInController extends AbstractPacketController
             return;
         }
 
-        $identifier_str = $this->randomLetters(5);
-        $player_id = 0; // will be returned by a repository
+        $player = null;
+        try {
+            $player = $this->auth_service->signin($session, $username);
+        } catch (\Throwable $e) {
+            $this->send($session, [
+                'type' => 'server_sign_in',
+                'state' => 'error',
+                'message' => $e->getMessage(),
+            ]);
+            return;
+        }
 
-        // TODO: call the player repository
-
-        $session->data->authenticated = true;
-        
         $this->send($session, [
             'type' => 'server_sign_in',
             'state' => 'success',
-            'identifier_str' => $identifier_str,
-            'player_id' => $player_id
+            'identifier_str' => $player->getIdentifierStr(),
+            'player_id' => $player->getPlayerId(),
+            'img' => $player->getImg() ?? $this->asset_service->getPlayerDefault()
         ]);
     }
 
