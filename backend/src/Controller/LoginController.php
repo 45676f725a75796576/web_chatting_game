@@ -23,7 +23,7 @@ class LoginController extends AbstractPacketController
         $identifier_str = $packet['identifier_str'] ?? null;
         $username = $packet['username'] ?? null;
 
-        if(!$identifier_str) {
+        if(!$identifier_str || !$username) {
             $this->send($session, [
                 'type' => 'server_login',
                 'state' => 'error',

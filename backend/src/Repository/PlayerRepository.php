@@ -18,7 +18,7 @@ class PlayerRepository extends ServiceEntityRepository
     {
          return $this->createQueryBuilder('p')
             ->andWhere('p.username = :username')
-            ->andWhere('p.identifier_str = :identifier')
+            ->andWhere('p.identifierStr = :identifier')
             ->setParameter('username', $username)
             ->setParameter('identifier', $identifier)
             ->getQuery()
@@ -36,7 +36,7 @@ class PlayerRepository extends ServiceEntityRepository
                 $identifier .= $letters[random_int(0, 25)];
             }
 
-            $existing = $this->findOneBy(['identifier_str' => $identifier]);
+            $existing = $this->findOneBy(['identifierStr' => $identifier]);
         } while ($existing !== null);
 
         return $identifier;

@@ -38,8 +38,9 @@ class SignInController extends AbstractPacketController
             $this->send($session, [
                 'type' => 'server_sign_in',
                 'state' => 'error',
-                'message' => 'failed to sign in, the username already exists (or internal error :( )',
+                'message' => $e->getMessage(),
             ]);
+            return;
         }
 
         $this->send($session, [
