@@ -4,18 +4,18 @@
 ## info
 The communication is through sending JSON packets divided by a new line character. All packets have a "type" string that indicates the packet type.
 
-## global behaviour
+## Global behaviour
 The user disconnects when the WebSocket closes. On disconnect the server sends a "server_disconnect" packet to all the other clients.
 
 
-## before multiplayer session
+## Before multiplayer session
 
-### creating a new user
+### Creating a new user
 1. client sends a json packet of type "sign_in"
 2. server respons with a json packet of type "server_sign_in"
 3. WebSocket session is now authenticated
 
-### login
+### Login
 1. client sends a json packet of type "login"
 2. server respons with a json packet of type "server_login"
 3. WebSocket session is now authenticated
