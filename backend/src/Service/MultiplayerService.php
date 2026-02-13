@@ -28,6 +28,10 @@ class MultiplayerService
             $this->game[$room_id] = [];
         }
 
+        $session->on_disconnect = function() use ($player) {
+            unset($this->game[$player->getPlayerId()]);
+        };
+
         array_push($this->game[$room_id], $player);
 
         foreach($this->game as $s) {

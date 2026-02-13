@@ -27,6 +27,8 @@ class EnterGameController extends AbstractPacketController
             ]);
             return;
         }
+
+        $this->multiplayer_service->join_room($session);
             
         $session->send([
             'type' => 'server_enter_game',
