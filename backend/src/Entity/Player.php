@@ -21,6 +21,9 @@ class Player
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $img = null;
+    
+    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    private ?string $roomImg = null;
 
     public function getPlayerId(): int
     {
@@ -57,6 +60,17 @@ class Player
     public function setImg(?string $img): self
     {
         $this->img = $img;
+        return $this;
+    }
+
+    public function getRoomImg(): ?string
+    {
+        return $this->roomImg;
+    }
+
+    public function setRoomImg(?string $img): self
+    {
+        $this->roomImg = $img;
         return $this;
     }
 }

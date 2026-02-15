@@ -6,6 +6,6 @@ class ClientData {
     public ?Player $player;
 
     public function __construct() {
-        $player = null;
+        $this->player = null;
     }
 }

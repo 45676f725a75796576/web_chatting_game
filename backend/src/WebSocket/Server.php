@@ -46,16 +46,14 @@ class Server implements MessageComponentInterface
     public function onClose(ConnectionInterface $conn): void
     {
         $this->clients->detach($conn);
-
-        $disconnectPacket = json_encode([
-            "type" => "server_disconnect"
-        ])."\n";
-
-        foreach ($this->clients as $client) {
-            $client->send($disconnectPacket);
+        
+        $session = $this->sessions[$conn->resourceId];
+        
+        if($session->on_disconnect != null) {
+            ($session->on_disconnect)();
         }
         
-        $this->sessions[$conn->resourceId] = new ClientData();
+        unset($sessions[$conn->resourceId]);
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e): void
