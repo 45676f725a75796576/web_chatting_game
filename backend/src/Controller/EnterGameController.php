@@ -23,23 +23,39 @@ class EnterGameController extends AbstractPacketController
         if(!$session->data)
         {
             $session->send([
-                'type' => 'server_enter_game',
+                'type' => 'server_place',
                 'state' =>'error',
                 'message' => 'user is not authenticated'
             ]);
             return;
         }
 
-        $this->multiplayer_service->join_room($session);
-
-        $player = $session->data->player;
-        $session->send([
+        $player = null;
+        $packets = null;
+        try {
+            $player = $session->data->player;
+            $packets = $this->multiplayer_service->join_room($session, $player);
+        } catch (\Throwable $e) {
+            $this->send($session, [
                 'type' => 'server_place',
-                'place' => [
-                    'img' => $player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
-                    'id' => $player->getPlayerId(),
-                    'is_floor' => false
-                ]
+                'state' => 'error',
+                'message' => $e->getMessage(),
             ]);
+            return;
+        }
+
+        $session->send([
+            'type' => 'server_place',
+            'state' => 'success',
+            'place' => [
+                'img' => $player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
+                'id' => $player->getPlayerId(),
+                'is_floor' => false
+            ]
+        ]);
+            
+        foreach($packets as $p) {
+            $session->send($p);
+        }
     }
 }

@@ -25,7 +25,6 @@ The user disconnects when the WebSocket closes. On disconnect the server sends a
 2. server responds with a "server_place" packet
 3. the [multiplayer session](#multiplayer-session) starts
 
-
 ## multiplayer session
 in the multiplayer session the client can send movement commands at any time and the server can send player updates at any time
 
@@ -105,14 +104,25 @@ in the multiplayer session the client can send movement commands at any time and
 ```
 
 ### server_place
+- success
 ```
 {
     "type": "server_place",
+    "state": "success",
     "place": {
         "img": <url to the room or floor image>,
         "id": <id of the room or floor>,
         "is_floor": <0 or 1>
     }
+}
+
+```
+- error
+```
+{
+    "type": "server_place",
+    "state": "error",
+    "message": <message>
 }
 
 ```
