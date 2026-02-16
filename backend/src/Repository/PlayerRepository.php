@@ -13,6 +13,12 @@ class PlayerRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Player::class);
     }
+
+    public function findById(int $id): ?Player
+    {
+        return $this->find($id);
+    }
+
     
     public function findByUsernameAndIdentifier(string $username, string $identifier): ?Player 
     {

@@ -4,47 +4,78 @@ namespace App\Service;
 
 use App\Entity\Player;
 use App\Entity\Session;
-
 use App\Service\AssetService;
 
 class MultiplayerService
 {
     private int $room_count = 5;
-    private array $game = [];
+    private array $rooms = [];
+    private array $floors = [];
 
     public function __construct(
         private AssetService $asset_service
     ) {}
 
-    public function join_room(Session $session)
+    private function addSessionToCollection(array &$collection, $key, Session $session)
     {
-        if(!$session->data->player) {
-            throw new \Exception("unauthenticated player");
-            return;
-        }
-        
-        $player = $session->data->player;
-
-        $room_id = $player->getPlayerId();
-        if(!array_key_exists($room_id, $this->game)) {
-            $this->game[$room_id] = [];
+        if (!array_key_exists($key, $collection)) {
+            $collection[$key] = [];
         }
 
-        $session->on_disconnect = function() use ($session, $room_id) {
-            $key = array_search($session, $this->game[$room_id], true);
-            if ($key !== false) {
-                unset($this->game[$room_id][$key]);
+        if ($session->on_disconnect !== null) {
+            ($session->on_disconnect)();
+        }
+
+        $player_id = $session->data->player->getPlayerId(); 
+        $session->on_disconnect = function() use (&$collection, $key, $session, $player_id) {
+            $index = array_search($session, $collection[$key], true);
+            if ($index !== false) {
+                unset($collection[$key][$index]);
+                $collection[$key] = array_values($collection[$key]);
+            }
+
+            foreach ($collection[$key] as $s) {
+                $s->send([
+                    'type' => 'server_disconnect',
+                    'player_id' => $player_id
+                ]);
             }
         };
 
-        foreach($this->game[$room_id] as $s) {
+        $packets = [];
+        foreach ($collection[$key] as $s) {
             $s->send([
+                'type' => 'server_player_join',
+                'player_id' => $session->data->player->getPlayerId(),
+                'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault()
+            ]);
+
+            array_push($packets, [
                 'type' => 'server_player_join',
                 'player_id' => $s->data->player->getPlayerId(),
                 'img' => $s->data->player->getImg() ?? $this->asset_service->getPlayerDefault()
             ]);
         }
-        
-        array_push($this->game[$room_id], $session);
+
+        $collection[$key][] = $session;
+        return $packets;
+    }
+
+    public function join_room(Session $session, Player $player): array
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        return $this->addSessionToCollection($this->rooms, $player->getPlayerId(), $session);
+    }
+
+    public function join_floor(Session $session, int $floor_id): array
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        return $this->addSessionToCollection($this->floors, $floor_id, $session);
     }
 }

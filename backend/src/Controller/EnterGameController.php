@@ -30,16 +30,20 @@ class EnterGameController extends AbstractPacketController
             return;
         }
 
-        $this->multiplayer_service->join_room($session);
-
         $player = $session->data->player;
+        $packets = $this->multiplayer_service->join_room($session, $player);
+
         $session->send([
-                'type' => 'server_place',
-                'place' => [
-                    'img' => $player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
-                    'id' => $player->getPlayerId(),
-                    'is_floor' => false
-                ]
-            ]);
+            'type' => 'server_place',
+            'place' => [
+                'img' => $player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
+                'id' => $player->getPlayerId(),
+                'is_floor' => false
+            ]
+        ]);
+            
+        foreach($packets as $p) {
+            $session->send($p);
+        }
     }
 }
