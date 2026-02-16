@@ -16,7 +16,7 @@ class MultiplayerService
         private AssetService $asset_service
     ) {}
 
-    private function addSessionToCollection(array &$collection, $key, Session $session)
+    private function add_session_to_collection(array &$collection, $key, Session $session)
     {
         if (!array_key_exists($key, $collection)) {
             $collection[$key] = [];
@@ -49,11 +49,29 @@ class MultiplayerService
                 'player_id' => $session->data->player->getPlayerId(),
                 'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault()
             ]);
+            
+            $s->send([
+                'type' => 'server_player_pos',
+                'player_id' => $session->data->player->getPlayerId(),
+                'pos' => [
+                    'x' => $session->data->x,
+                    'y' => $session->data->y,
+                ]
+            ]);
 
             array_push($packets, [
                 'type' => 'server_player_join',
                 'player_id' => $s->data->player->getPlayerId(),
                 'img' => $s->data->player->getImg() ?? $this->asset_service->getPlayerDefault()
+            ]);
+            
+            array_push($packets, [
+                'type' => 'server_player_pos',
+                'player_id' => $s->data->player->getPlayerId(),
+                'pos' => [
+                    'x' => $s->data->x,
+                    'y' => $s->data->y,
+                ]
             ]);
         }
 
@@ -67,7 +85,12 @@ class MultiplayerService
             throw new \Exception("unauthenticated player");
         }
 
-        return $this->addSessionToCollection($this->rooms, $player->getPlayerId(), $session);
+        $session->data->room = $player->getPlayerId();
+        $session->data->floor = null;
+
+        $session->data->x = 0;
+        $session->data->y = 0;
+        return $this->add_session_to_collection($this->rooms, $player->getPlayerId(), $session);
     }
 
     public function join_floor(Session $session, int $floor_id): array
@@ -76,6 +99,47 @@ class MultiplayerService
             throw new \Exception("unauthenticated player");
         }
 
-        return $this->addSessionToCollection($this->floors, $floor_id, $session);
+        $session->data->floor = $floor_id;
+        $session->data->room = null;
+        
+        $session->data->x = 0;
+        $session->data->y = 0;
+        return $this->add_session_to_collection($this->floors, $floor_id, $session);
     }
+
+public function update_player_pos(Session $session, int $x, int $y)
+{
+    if (!$session->data->player) {
+        throw new \Exception("unauthenticated player");
+    }
+
+    if ($session->data->room !== null) {
+        $this->change_player_pos_in_collection($this->rooms, $session->data->room, $session, $x, $y);
+    } elseif ($session->data->floor !== null) {
+        $this->change_player_pos_in_collection($this->floors, $session->data->floor, $session, $x, $y);
+    }
+
+    $session->data->x = $x;
+    $session->data->y = $y;
+}
+
+private function change_player_pos_in_collection(array &$collection, $key, Session $session, int $x, int $y)
+{
+    if (!isset($collection[$key])) {
+        return;
+    }
+
+    foreach ($collection[$key] as $s) {
+        if ($s !== $session) {
+            $s->send([
+                'type' => 'server_player_pos',
+                'player_id' => $session->data->player->getPlayerId(),
+                'pos' => [
+                    'x' => $x,
+                    'y' => $y,
+                ]
+            ]);
+        }
+    }
+}
 }

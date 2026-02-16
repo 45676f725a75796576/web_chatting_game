@@ -4,12 +4,12 @@ namespace App\Entity;
 
 class ClientData {
     public ?Player $player;
-    public ?int $floor;
-    public ?int $room;
+    public ?int $room = null;
+    public ?int $floor = null;
+    public int $x = 0;
+    public int $y = 0;
 
     public function __construct() {
         $this->player = null;
-        $this->floor = null;
-        $this->room = null;
     }
 }
