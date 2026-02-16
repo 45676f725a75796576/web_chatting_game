@@ -20,7 +20,7 @@ class EnterGameController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
-        if(!$session->data)
+        if(!$session->data->player)
         {
             $session->send([
                 'type' => 'server_place',
