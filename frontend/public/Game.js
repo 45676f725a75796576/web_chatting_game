@@ -26,6 +26,15 @@ class Game {
         networkManager.on('server_chat_expired', (packet) => this.handleChatExpired(packet));
         networkManager.on('server_disconnect', (packet) => this.handleDisconnect(packet));
         networkManager.on('server_error', (packet) => authUI.showError(packet.message || 'Server error'));
+        networkManager.on('server_change_skin', (packet) => {
+            if (this.players[packet.player_id]) {
+                this.players[packet.player_id].setSkin(
+                    packet.skin_url, 
+                    packet.skin_width || 0.4, 
+                    packet.skin_height || 0.4
+                );
+            }
+        });        
     }
 
     handleSignIn(packet) {
@@ -59,12 +68,12 @@ class Game {
     handlePlace(packet) {
         authUI.switchToGame();
         document.getElementById('myPlayerId').textContent = this.myPlayerId;
-
+    
         this.inGame = true;
-
+    
         const startX = CONFIG.CANVAS_WIDTH / 2;
         const startY = CONFIG.CANVAS_HEIGHT / 2;
-
+    
         this.players[this.myPlayerId] = new Player(
             this.myPlayerId,
             startX,
@@ -72,11 +81,14 @@ class Game {
             this.myUsername || 'You',
             '#e94560'
         );
-
+    
         this.updatePlayerCount();
         this.startGameLoop();
+        
+        // Show skin controls
+        document.getElementById('skinControls').classList.remove('hidden');
     }
-
+        
     handleNewPlayer(packet) {
         this.players[packet.player_id] = new Player(
             packet.player_id,
@@ -117,12 +129,12 @@ class Game {
         this.myUsername = username;
         this.authenticated = true;
         this.inGame = true;
-
+    
         networkManager.enableTestMode();
-
+    
         const startX = CONFIG.CANVAS_WIDTH / 2;
         const startY = CONFIG.CANVAS_HEIGHT / 2;
-
+    
         this.players[this.myPlayerId] = new Player(
             this.myPlayerId,
             startX,
@@ -130,11 +142,14 @@ class Game {
             username,
             '#51cf66'
         );
-
+    
         this.updatePlayerCount();
         this.startGameLoop();
+        
+        // Show skin controls
+        document.getElementById('skinControls').classList.remove('hidden');
     }
-
+        
     updatePlayerCount() {
         document.getElementById('playerCount').textContent = Object.keys(this.players).length;
     }
@@ -189,4 +204,68 @@ class Game {
         };
         loop();
     }
+
+    openSkinModal() {
+        document.getElementById('skinModal').classList.remove('hidden');
+    }
+    
+    closeSkinModal() {
+        document.getElementById('skinModal').classList.add('hidden');
+        document.getElementById('skinUrlInput').value = '';
+    }
+    
+    applySkin() {
+        const url = document.getElementById('skinUrlInput').value.trim();
+        
+        if (!url) {
+            alert('Please enter an image URL');
+            return;
+        }
+        
+        const width = parseFloat(document.getElementById('skinWidthSlider').value);
+        const height = parseFloat(document.getElementById('skinHeightSlider').value);
+        
+        const myPlayer = this.players[this.myPlayerId];
+        if (myPlayer) {
+            myPlayer.setSkin(url, width, height);
+            this.closeSkinModal();
+            
+            // Send to server if not in test mode
+            if (!this.testMode) {
+                networkManager.sendPacket({
+                    type: 'change_skin',
+                    skin_url: url,
+                    skin_width: width,
+                    skin_height: height
+                });
+            }
+        }
+    }
+    
+    updateSkinSize() {
+        const width = parseFloat(document.getElementById('skinWidthSlider').value);
+        const height = parseFloat(document.getElementById('skinHeightSlider').value);
+        
+        document.getElementById('widthValue').textContent = width.toFixed(1);
+        document.getElementById('heightValue').textContent = height.toFixed(1);
+        
+        const myPlayer = this.players[this.myPlayerId];
+        if (myPlayer && myPlayer.skinUrl) {
+            myPlayer.skinWidth = width;
+            myPlayer.skinHeight = height;
+            
+            // Send to server if not in test mode
+            if (!this.testMode) {
+                networkManager.sendPacket({
+                    type: 'change_skin',
+                    skin_url: myPlayer.skinUrl,
+                    skin_width: width,
+                    skin_height: height
+                });
+            }
+        }
+    }
+    
+    
+    
 }

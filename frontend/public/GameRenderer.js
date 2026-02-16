@@ -9,27 +9,44 @@ class GameRenderer {
     }
 
     drawPlayer(player, isMe, chatMessage = null) {
-        this.ctx.fillStyle = player.color;
-        this.ctx.beginPath();
-        this.ctx.arc(player.x, player.y, CONFIG.PLAYER_RADIUS, 0, Math.PI * 2);
-        this.ctx.fill();
-
-        if (isMe) {
-            this.ctx.strokeStyle = game.testMode ? '#51cf66' : '#ffeb3b';
-            this.ctx.lineWidth = 3;
-            this.ctx.stroke();
+        // Draw skin if available, otherwise draw circle
+        if (player.skinUrl && player.skinLoaded && player.skinImage) {
+            // Convert from units to pixels (1 unit = 100px)
+            const drawWidth = player.skinWidth * 100;
+            const drawHeight = player.skinHeight * 100;
+            
+            // Center the image
+            const drawX = player.x - drawWidth / 2;
+            const drawY = player.y - drawHeight / 2;
+            
+            // Draw image as-is (no border)
+            this.ctx.drawImage(player.skinImage, drawX, drawY, drawWidth, drawHeight);
+        } else {
+            // Draw default circle
+            this.ctx.fillStyle = player.color;
+            this.ctx.beginPath();
+            this.ctx.arc(player.x, player.y, CONFIG.PLAYER_RADIUS, 0, Math.PI * 2);
+            this.ctx.fill();
         }
-
+    
+        // Draw username
         this.ctx.fillStyle = 'white';
         this.ctx.font = 'bold 12px Arial';
         this.ctx.textAlign = 'center';
-        this.ctx.fillText(player.username, player.x, player.y + 35);
-
+        const nameOffsetY = player.skinUrl && player.skinLoaded ? (player.skinHeight * 100 / 2) + 15 : CONFIG.PLAYER_RADIUS + 15;
+        this.ctx.fillText(player.username, player.x, player.y + nameOffsetY);
+    
+        // Draw chat bubble
         if (chatMessage) {
-            this.drawChatBubble(player.x, player.y, chatMessage);
+            const bubbleOffsetY = player.skinUrl && player.skinLoaded ? -(player.skinHeight * 100 / 2) : -CONFIG.PLAYER_RADIUS;
+            this.drawChatBubble(player.x, player.y + bubbleOffsetY, chatMessage);
         }
     }
+    
+    
 
+    
+    
     drawChatBubble(x, y, message) {
         this.ctx.font = '14px Arial';
         const textWidth = this.ctx.measureText(message).width;
