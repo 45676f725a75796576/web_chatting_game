@@ -45,32 +45,24 @@ class MultiplayerService
         $packets = [];
         foreach ($collection[$key] as $s) {
             $s->send([
-                'type' => 'server_player_join',
+                'type' => 'server_new_player',
                 'player_id' => $session->data->player->getPlayerId(),
-                'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault()
-            ]);
-            
-            $s->send([
-                'type' => 'server_player_pos',
-                'player_id' => $session->data->player->getPlayerId(),
+                'username' => $session->data->player->getUsername(),
+                'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
                 'pos' => [
                     'x' => $session->data->x,
                     'y' => $session->data->y,
                 ]
             ]);
-
-            array_push($packets, [
-                'type' => 'server_player_join',
-                'player_id' => $s->data->player->getPlayerId(),
-                'img' => $s->data->player->getImg() ?? $this->asset_service->getPlayerDefault()
-            ]);
             
             array_push($packets, [
-                'type' => 'server_player_pos',
-                'player_id' => $s->data->player->getPlayerId(),
+                'type' => 'server_new_player',
+                'player_id' => $session->data->player->getPlayerId(),
+                'username' => $session->data->player->getUsername(),
+                'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
                 'pos' => [
-                    'x' => $s->data->x,
-                    'y' => $s->data->y,
+                    'x' => $session->data->x,
+                    'y' => $session->data->y,
                 ]
             ]);
         }
