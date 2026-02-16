@@ -32,7 +32,6 @@ class EnterDestinationController extends AbstractPacketController
             return;
         }
 
-        $player = $session->data->player;
         $dest_id = $packet['dest_id'];
         $is_floor = $packet['is_floor'];
 
@@ -46,7 +45,18 @@ class EnterDestinationController extends AbstractPacketController
                 ]);
             }
 
-            $packets = $this->multiplayer_service->join_room($session, $dest_player);
+
+            $packets = null;
+            try {
+                $packets = $this->multiplayer_service->join_room($session, $dest_player);
+            } catch (\Throwable $e) {
+                $this->send($session, [
+                    'type' => 'server_place',
+                    'state' => 'error',
+                    'message' => $e->getMessage(),
+                ]);
+                return;
+            }
 
             $session->send([
                 'type' => 'server_place',
@@ -62,11 +72,21 @@ class EnterDestinationController extends AbstractPacketController
             }
 
         } else if($is_floor == '1') {
-            $packets = $this->multiplayer_service->join_floor($session, $dest_id);
+            $packets = null;
+            try {
+                $packets = $this->multiplayer_service->join_floor($session, $dest_id);
+            } catch (\Throwable $e) {
+                $this->send($session, [
+                    'type' => 'server_place',
+                    'state' => 'error',
+                    'message' => $e->getMessage(),
+                ]);
+                return;
+            }
+
             foreach($packets as $p) {
                 $session->send($p);
             }
-
         }
     }
 }
