@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Player;
 use App\Entity\Session;
 use App\Service\AssetService;
+use App\Repository\PlayerRepository;
 
 class MultiplayerService
 {
@@ -13,7 +14,8 @@ class MultiplayerService
     private array $floors = [];
 
     public function __construct(
-        private AssetService $asset_service
+        private AssetService $asset_service,
+        private PlayerRepository $player_repository
     ) {}
 
     private function add_session_to_collection(array &$collection, $key, Session $session)
@@ -107,39 +109,58 @@ class MultiplayerService
         return $this->add_session_to_collection($this->floors, $floor_id, $session);
     }
 
-public function update_player_pos(Session $session, int $x, int $y)
-{
-    if (!$session->data->player) {
-        throw new \Exception("unauthenticated player");
+    public function update_player_pos(Session $session, int $x, int $y)
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        if ($session->data->room !== null) {
+            $this->change_player_pos_in_collection($this->rooms, $session->data->room, $session, $x, $y);
+        } elseif ($session->data->floor !== null) {
+            $this->change_player_pos_in_collection($this->floors, $session->data->floor, $session, $x, $y);
+        }
+
+        $session->data->x = $x;
+        $session->data->y = $y;
     }
 
-    if ($session->data->room !== null) {
-        $this->change_player_pos_in_collection($this->rooms, $session->data->room, $session, $x, $y);
-    } elseif ($session->data->floor !== null) {
-        $this->change_player_pos_in_collection($this->floors, $session->data->floor, $session, $x, $y);
-    }
+    private function change_player_pos_in_collection(array &$collection, $key, Session $session, int $x, int $y)
+    {
+        if (!isset($collection[$key])) {
+            return;
+        }
 
-    $session->data->x = $x;
-    $session->data->y = $y;
-}
-
-private function change_player_pos_in_collection(array &$collection, $key, Session $session, int $x, int $y)
-{
-    if (!isset($collection[$key])) {
-        return;
-    }
-
-    foreach ($collection[$key] as $s) {
-        if ($s !== $session) {
-            $s->send([
-                'type' => 'server_player_pos',
-                'player_id' => $session->data->player->getPlayerId(),
-                'pos' => [
-                    'x' => $x,
-                    'y' => $y,
-                ]
-            ]);
+        foreach ($collection[$key] as $s) {
+            if ($s !== $session) {
+                $s->send([
+                    'type' => 'server_player_pos',
+                    'player_id' => $session->data->player->getPlayerId(),
+                    'pos' => [
+                        'x' => $x,
+                        'y' => $y,
+                    ]
+                ]);
+            }
         }
     }
-}
+
+    public function get_floor(int $room_id) 
+    {
+        return (int)($room_id / $this->room_count);
+    }
+
+    public function get_rooms(int $floor_id)
+    {
+        $floor_rooms = [];
+        for($i = 1; $i < $this->room_count + 1; $i++) {
+            $id = $i + $floor_id;
+            $player = $this->player_repository->findById($id);
+            if($player != null) {
+                array_push($floor_rooms, (string)$id);
+            }
+        }
+
+        return $floor_rooms;
+    }
 }

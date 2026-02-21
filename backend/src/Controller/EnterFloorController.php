@@ -3,19 +3,21 @@
 namespace App\Controller;
 
 use App\Entity\Session;
+use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 
-class EnterGameController extends AbstractPacketController
+class EnterFloorController extends AbstractPacketController
 {
     public function __construct(
+        private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
         private AssetService $asset_service
     ) {}
 
     public function supports(string $type): bool
     {
-        return $type === 'enter_game';
+        return $type === 'enter_floor';
     }
 
     public function handle(Session $session, array $packet): void
@@ -23,35 +25,34 @@ class EnterGameController extends AbstractPacketController
         if(!$session->data->player)
         {
             $session->send([
-                'type' => 'server_room',
+                'type' => 'server_floor',
                 'state' =>'error',
                 'message' => 'user is not authenticated'
             ]);
             return;
         }
 
-        $player = null;
+        $floor_id = $packet['floor_id'];
+
         $packets = null;
         try {
-            $player = $session->data->player;
-            $packets = $this->multiplayer_service->join_room($session, $player);
+            $packets = $this->multiplayer_service->join_floor($session, $floor_id);
         } catch (\Throwable $e) {
             $this->send($session, [
-                'type' => 'server_room',
+                'type' => 'server_floor',
                 'state' => 'error',
                 'message' => $e->getMessage(),
             ]);
             return;
         }
-
-        $session->send([
-            'type' => 'server_room',
-            'state' => 'success',
-            'img' => $player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
-            'room_id' => $player->getPlayerId(),
-            "floor" => $this->multiplayer_service->get_floor($player->getPlayerId())
-        ]);
             
+        $session->send([
+            'type' => 'server_place',
+            'img' => $this->asset_service->getFloor(),
+            'floor_id' => $floor_id,
+            'rooms' => $this->multiplayer_service->get_rooms($floor_id)
+        ]);
+
         foreach($packets as $p) {
             $session->send($p);
         }

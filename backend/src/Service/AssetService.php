@@ -13,4 +13,9 @@ class AssetService
     {
         return 'https://cataas.com/cat';
     }
+    
+    public function getFloor(): string
+    {
+        return 'https://cataas.com/cat';
+    }
 }
