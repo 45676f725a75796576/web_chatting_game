@@ -83,6 +83,15 @@ class EnterDestinationController extends AbstractPacketController
                 ]);
                 return;
             }
+            
+            $session->send([
+                'type' => 'server_place',
+                'place' => [
+                    'img' => 'https://images.pexels.com/photos/5371570/pexels-photo-5371570.jpeg',
+                    'id' => $dest_id,
+                    'is_floor' => true 
+                ]
+            ]);
 
             foreach($packets as $p) {
                 $session->send($p);

@@ -166,3 +166,17 @@ in the multiplayer session the client can send movement commands at any time and
     "player_id": <id of the disconected player>
 }
 ```
+
+## server_new_player
+```
+{
+    "type": "server_new_player",
+    "player_id": <player id>,
+    "username": <player username>,
+    "img": <player skin>,
+    "pos": {
+        "x": <pos x>,
+        "y": <pos y>
+    }
+}
+```
