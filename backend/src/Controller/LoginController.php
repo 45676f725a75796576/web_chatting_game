@@ -40,6 +40,7 @@ class LoginController extends AbstractPacketController
                 'state' => 'error',
                 'message' => 'invalid username or password',
             ]);
+            return;
         }
 
         $this->send($session, [
