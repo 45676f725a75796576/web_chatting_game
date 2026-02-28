@@ -22,7 +22,7 @@ The user disconnects when the WebSocket closes. On disconnect the server sends a
 
 ### joining the server
 1. client sends a "enter_game" packet
-2. server responds with a "server_place" packet
+2. server responds with a "server_room" packet
 3. the [multiplayer session](#multiplayer-session) starts
 
 ## multiplayer session
@@ -34,9 +34,19 @@ in the multiplayer session the client can send movement commands at any time and
 3. server sends a "server_player_pos" packet to all other clients joined in the session
 
 ### user moves into another room
-1. client sends a "enter_destination" packet
-2. server responds with packet "server_place"
+1. client sends a "enter_room" packet
+2. server responds with packet "server_room"
 3. server sends a "server_disconnect" packet to all other clients joined in the session
+
+### user moves into another floor
+1. client sends a "enter_floor" packet
+2. server responds with packet "server_floor"
+3. server sends a "server_disconnect" packet to all other clients joined in the session
+
+### user sends a chat message
+1. client sends a "chat" packet
+2. server does not respond
+3. server sends a "server_chat" packet to all other clients joined in the session
 
 ## packets
 
@@ -103,28 +113,50 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-### server_place
+### server_room
 - success
 ```
 {
-    "type": "server_place",
+    "type": "server_room",
     "state": "success",
-    "place": {
-        "img": <url to the room or floor image>,
-        "id": <id of the room or floor>,
-        "is_floor": <0 or 1>
-    }
+    "img": <url to the room image>,
+    "room_id": <id of the room>,
+    "floor": <the floor this room is at>
 }
 
 ```
 - error
 ```
 {
-    "type": "server_place",
+    "type": "server_room",
     "state": "error",
     "message": <message>
 }
+```
+### server_floor
+- success
+```
+{
+    "type": "server_floor",
+    "state": "success",
+    "img": <url to the floor image>,
+    "floor_id": <id of the floor>,
+    "rooms": [
+        <room id>,
+        <room id>,
+        <room id>,
+        <room id>,
+    ]
+}
 
+```
+- error
+```
+{
+    "type": "server_floor",
+    "state": "error",
+    "message": <message>
+}
 ```
 
 ## player_pos
@@ -150,12 +182,19 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## enter_destination
+## enter_floor
 ```
 {
-    "type": "enter_destination",
-    "dest_id": <id of the room or floor>,
-    "is_floor": <0 or 1>
+    "type": "enter_floor",
+    "floor_id": <id of the floor>,
+}
+```
+
+## enter_room
+```
+{
+    "type": "enter_room",
+    "room_id": <id of the room>,
 }
 ```
 
@@ -167,6 +206,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
+<<<<<<< Updated upstream
 ## server_new_player
 ```
 {
@@ -178,5 +218,31 @@ in the multiplayer session the client can send movement commands at any time and
         "x": <pos x>,
         "y": <pos y>
     }
+=======
+### chat
+```
+{
+    "player_id": <players id>,
+    "message": <text message>
+}
+```
+
+### server_chat
+**success:** 
+```
+{
+    "state": "success",
+    "player_id": <players id>,
+    "message": <text message>,
+    "timeout": <number of seconds>
+}
+```
+
+**error:** 
+```
+{
+    "state": "error",
+    "message": <error message>,
+>>>>>>> Stashed changes
 }
 ```
