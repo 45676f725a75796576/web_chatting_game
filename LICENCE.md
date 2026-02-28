@@ -1,4 +1,4 @@
-web chatting game  © 2026 by [Egor Zuyev](https://github.com/45676f725a75796576), [Tadeáš Máca](https://github.com/tadeas223), [Maxim Mazuret](https://github.com/cortaget), [Martin Morávek](https://github.com/OvcaTV), [Erik Loskorikh](https://github.com/lskErixon) is licensed under Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-nd/4.0/
+web chatting game  © 2026 by [Jegor Ivanovič Zujev](https://github.com/45676f725a75796576), [Tadeáš Máca](https://github.com/tadeas223), [Maxim Mazuret](https://github.com/cortaget), [Martin Morávek](https://github.com/OvcaTV), [Erik Loskorikh](https://github.com/lskErixon) is licensed under Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc-nd/4.0/
 
 You are free to:  
 Share — copy and redistribute the material in any medium or format  
