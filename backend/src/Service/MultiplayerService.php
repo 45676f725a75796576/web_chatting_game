@@ -118,6 +118,24 @@ class MultiplayerService
         $session->data->x = $x;
         $session->data->y = $y;
     }
+
+    public function change_player_skin(Session $session, string $url) 
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        $session->data->player->setImg($url);
+    }
+    
+    public function change_room_skin(Session $session, string $url) 
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        $session->data->player->setRoomImg($url);
+    }
     
     public function send_chat_message(Session $session, string $message): void
     {
