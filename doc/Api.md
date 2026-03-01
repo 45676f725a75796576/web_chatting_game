@@ -48,6 +48,18 @@ in the multiplayer session the client can send movement commands at any time and
 2. server does not respond
 3. server sends a "server_chat" packet to all other clients joined in the session
 
+
+### user changes his skin
+1. client sends a "skin" packet
+2. server returns success or error
+3. all newly connected players will see the new skin
+
+### user changes his room skin
+1. client sends a "room_skin" packet
+2. server returns success or error
+3. all newly connected players will see the new room skin
+
+
 ## packets
 
 ### sign_in
@@ -159,7 +171,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## player_pos
+### player_pos
 ```
 {
     "type": "player_pos",
@@ -170,7 +182,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## server_player_pos
+### server_player_pos
 ```
 {
     "type": "server_player_pos",
@@ -182,7 +194,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## enter_floor
+### enter_floor
 ```
 {
     "type": "enter_floor",
@@ -190,7 +202,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## enter_room
+### enter_room
 ```
 {
     "type": "enter_room",
@@ -198,7 +210,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## server_disconnect
+### server_disconnect
 ```
 {
     "type": "server_disconnect",
@@ -206,22 +218,10 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-<<<<<<< Updated upstream
-## server_new_player
-```
-{
-    "type": "server_new_player",
-    "player_id": <player id>,
-    "username": <player username>,
-    "img": <player skin>,
-    "pos": {
-        "x": <pos x>,
-        "y": <pos y>
-    }
-=======
 ### chat
 ```
 {
+    "type":"chat",
     "player_id": <players id>,
     "message": <text message>
 }
@@ -231,6 +231,7 @@ in the multiplayer session the client can send movement commands at any time and
 **success:** 
 ```
 {
+    "type":"server_chat",
     "state": "success",
     "player_id": <players id>,
     "message": <text message>,
@@ -241,8 +242,60 @@ in the multiplayer session the client can send movement commands at any time and
 **error:** 
 ```
 {
+    "type":"server_chat",
     "state": "error",
     "message": <error message>,
->>>>>>> Stashed changes
+}
+```
+
+### server_room_skin
+**success:** 
+```
+{
+    "type":"server_room_skin",
+    "state": "success",
+}
+```
+
+**error:** 
+```
+{
+    "type":"server_room_skin",
+    "state": "error",
+    "message": <error message>,
+}
+```
+
+### server_skin
+**success:** 
+```
+{
+    "type":"server_skin",
+    "state": "success",
+}
+```
+
+**error:** 
+```
+{
+    "type":"server_skin",
+    "state": "error",
+    "message": <error message>,
+}
+```
+
+### skin
+```
+{
+    "type":"skin",
+    "url": <skin url>
+}
+```
+
+### room_skin
+```
+{
+    "type":"room_skin",
+    "url": <skin url>
 }
 ```
