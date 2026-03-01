@@ -46,20 +46,9 @@ class MultiplayerService
 
         $packets = [];
         foreach ($collection[$key] as $s) {
-
-            $s->send([
-                'type' => 'server_new_player',
-                'player_id' => $session->data->player->getPlayerId(),
-                'username' => $session->data->player->getUsername(),
-                'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
-                'pos' => [
-                    'x' => $session->data->x,
-                    'y' => $session->data->y,
-                ]
-            ]);
             
             if($s != $session) {
-                array_push($packets, [
+                $s->send([
                     'type' => 'server_new_player',
                     'player_id' => $session->data->player->getPlayerId(),
                     'username' => $session->data->player->getUsername(),
@@ -67,6 +56,16 @@ class MultiplayerService
                     'pos' => [
                         'x' => $session->data->x,
                         'y' => $session->data->y,
+                    ]
+                ]);
+                array_push($packets, [
+                    'type' => 'server_new_player',
+                    'player_id' => $s->data->player->getPlayerId(),
+                    'username' => $s->data->player->getUsername(),
+                    'img' => $s->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
+                    'pos' => [
+                        'x' => $s->data->x,
+                        'y' => $s->data->y,
                     ]
                 ]);
             }
