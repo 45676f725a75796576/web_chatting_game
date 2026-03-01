@@ -34,6 +34,15 @@ class EnterRoomController extends AbstractPacketController
 
         $room_id = $packet['room_id'];
 
+        if(!$room_id) {
+            $session->send([
+                'type' => 'server_room',
+                'state' =>'error',
+                'message' => 'missing room_id'
+            ]);
+            return;
+        }
+
         $dest_player = $this->player_repository->findById($room_id);
         if(!$dest_player) {
             $session->send([
