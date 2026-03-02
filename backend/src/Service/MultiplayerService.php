@@ -170,6 +170,13 @@ class MultiplayerService
                 }
             }
         }
+
+        $session->send([
+            'type' => 'server_chat',
+            'player_id' => $session->data->player->getPlayerId(),
+            'message' => $message,
+            'timeout' => 10,
+        ]);
     }
 
     private function change_player_pos_in_collection(array &$collection, $key, Session $session, int $x, int $y)
