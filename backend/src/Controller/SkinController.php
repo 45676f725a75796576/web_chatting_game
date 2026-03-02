@@ -34,12 +34,16 @@ class SkinController extends AbstractPacketController
 
         $url = $packet['url'];
 
-        $this->multiplayer_service->change_player_skin($session, $url);
+        $res_packet = $this->multiplayer_service->change_player_skin($session, $url);
 
         $session->send([
             'type' => 'server_skin',
             'state' =>'success',
         ]);
+        
+        if($res_packet) {
+            $session->send($res_packet);
+        }
         return;
     }
 }

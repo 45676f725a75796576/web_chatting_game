@@ -6,6 +6,7 @@ use App\Entity\Player;
 use App\Entity\Session;
 use App\Service\AssetService;
 use App\Repository\PlayerRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class MultiplayerService
 {
@@ -15,7 +16,8 @@ class MultiplayerService
 
     public function __construct(
         private AssetService $asset_service,
-        private PlayerRepository $player_repository
+        private PlayerRepository $player_repository,
+        private EntityManagerInterface $em,
     ) {}
 
     private function add_session_to_collection(array &$collection, $key, Session $session)
@@ -126,18 +128,87 @@ class MultiplayerService
         }
 
         $session->data->player->setImg($url);
+        
+        $this->em->flush();
+        
+        $packet = [];
+        if ($session->data->room !== null) {
+            foreach($this->rooms as $rooms) {
+                foreach($rooms as $s) {
+                    if($s != $session) {
+                        $s->send([
+                            'type' => 'server_skin_update',
+                            'player_id' => $session->data->player->getPlayerId(),
+                            'url' => $session->data->player->getImg(),
+                        ]);
+                    } else {
+                        $packet = [
+                            'type' => 'server_skin_update',
+                            'player_id' => $session->data->player->getPlayerId(),
+                            'url' => $session->data->player->getImg(),
+                        ];
+                    }
+                }
+            }
+        } elseif ($session->data->floor !== null) {
+            foreach($this->floors as $floors) {
+                foreach($floors as $s) {
+                    if($s != $session) {
+                        if($s != $session) {
+                            $s->send([
+                                'type' => 'server_skin_update',
+                                'player_id' => $session->data->player->getPlayerId(),
+                                'url' => $session->data->player->getImg(),
+                            ]);
+                        }
+                    } else {
+                        $packet = [
+                            'type' => 'server_skin_update',
+                            'player_id' => $session->data->player->getPlayerId(),
+                            'url' => $session->data->player->getImg(),
+                        ];
+                    }
+                }
+            }
+        }
+        return $packet;
+
     }
     
-    public function change_room_skin(Session $session, string $url) 
+    public function change_room_skin(Session $session, string $url)
     {
         if (!$session->data->player) {
             throw new \Exception("unauthenticated player");
         }
-
-        $session->data->player->setRoomImg($url);
+    
+        $player = $session->data->player;
+        $player->setRoomImg($url);
+    
+        $this->em->flush();
+    
+        $packet = null;
+        $playerId = $player->getPlayerId();
+    
+        if (!empty($this->rooms[$playerId])) {
+            foreach ($this->rooms[$playerId] as $s) {
+    
+                $data = [
+                    'type' => 'server_room_skin_update',
+                    'url' => $player->getRoomImg(), // ✅ correct field
+                ];
+    
+                if ($s !== $session) {
+                    $s->send($data);
+                } else {
+                    $packet = $data;
+                }
+            }
+        }
+    
+        return $packet;
     }
     
-    public function send_chat_message(Session $session, string $message): void
+    public function send_chat_message(Session $session, string $message): array
     {
         if (!$session->data->player) {
             throw new \Exception("unauthenticated player");
@@ -171,7 +242,7 @@ class MultiplayerService
             }
         }
 
-        $session->send([
+        return ([
             'type' => 'server_chat',
             'player_id' => $session->data->player->getPlayerId(),
             'message' => $message,

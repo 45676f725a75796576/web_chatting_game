@@ -41,6 +41,9 @@ class ChatController extends AbstractPacketController
             return;
         }
 
-        $this->multiplayer_service->send_chat_message($session, $message);
+        $res_packet = $this->multiplayer_service->send_chat_message($session, $message);
+        if($res_packet) {
+            $session->send($res_packet);
+        } 
     }
 }
