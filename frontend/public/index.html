@@ -59,6 +59,14 @@
         <input type="text" id="chatInput" placeholder="Type a message and press Enter..." maxlength="100">
         <p class="info">Players online: <span id="playerCount">0</span> | Your ID: <span id="myPlayerId">-</span></p>
     </div>
+    <div id="roomPanel">
+        <p class="info">Current room: <span id="currentRoomId">-</span></p>
+        <div class="room-join">
+            <input type="number" id="roomIdInput" placeholder="Room ID...">
+            <button class="btn-join" onclick="game.joinRoom()">Join Room</button>
+        </div>
+    </div>
+    
 
 <!-- Skin Changer Modal (только для URL) -->
 <div id="skinModal" class="modal hidden">
