@@ -34,6 +34,17 @@ class EnterFloorController extends AbstractPacketController
 
         $floor_id = $packet['floor_id'];
 
+        if(!$floor_id) {
+            $session->send([
+                'type' => 'server_floor',
+                'state' =>'error',
+                'message' => 'missing floor_id'
+            ]);
+            return;
+        }
+
+
+
         $packets = null;
         try {
             $packets = $this->multiplayer_service->join_floor($session, $floor_id);

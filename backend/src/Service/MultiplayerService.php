@@ -46,27 +46,29 @@ class MultiplayerService
 
         $packets = [];
         foreach ($collection[$key] as $s) {
-            $s->send([
-                'type' => 'server_new_player',
-                'player_id' => $session->data->player->getPlayerId(),
-                'username' => $session->data->player->getUsername(),
-                'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
-                'pos' => [
-                    'x' => $session->data->x,
-                    'y' => $session->data->y,
-                ]
-            ]);
             
-            array_push($packets, [
-                'type' => 'server_new_player',
-                'player_id' => $session->data->player->getPlayerId(),
-                'username' => $session->data->player->getUsername(),
-                'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
-                'pos' => [
-                    'x' => $session->data->x,
-                    'y' => $session->data->y,
-                ]
-            ]);
+            if($s != $session) {
+                $s->send([
+                    'type' => 'server_new_player',
+                    'player_id' => $session->data->player->getPlayerId(),
+                    'username' => $session->data->player->getUsername(),
+                    'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
+                    'pos' => [
+                        'x' => $session->data->x,
+                        'y' => $session->data->y,
+                    ]
+                ]);
+                array_push($packets, [
+                    'type' => 'server_new_player',
+                    'player_id' => $s->data->player->getPlayerId(),
+                    'username' => $s->data->player->getUsername(),
+                    'img' => $s->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
+                    'pos' => [
+                        'x' => $s->data->x,
+                        'y' => $s->data->y,
+                    ]
+                ]);
+            }
         }
 
         $collection[$key][] = $session;
@@ -117,6 +119,59 @@ class MultiplayerService
         $session->data->y = $y;
     }
 
+    public function change_player_skin(Session $session, string $url) 
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        $session->data->player->setImg($url);
+    }
+    
+    public function change_room_skin(Session $session, string $url) 
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        $session->data->player->setRoomImg($url);
+    }
+    
+    public function send_chat_message(Session $session, string $message): void
+    {
+        if (!$session->data->player) {
+            throw new \Exception("unauthenticated player");
+        }
+
+        if ($session->data->room !== null) {
+            foreach($this->rooms as $rooms) {
+                foreach($rooms as $s) {
+                    if($s != $session) {
+                        $s->send([
+                            'type' => 'server_chat',
+                            'player_id' => $session->data->player->getPlayerId(),
+                            'message' => $message,
+                            'timeout' => 10,
+                        ]);
+                    }
+                }
+            }
+        } elseif ($session->data->floor !== null) {
+            foreach($this->floors as $floors) {
+                foreach($floors as $s) {
+                    if($s != $session) {
+                        $s->send([
+                            'type' => 'server_chat',
+                            'player_id' => $session->data->player->getPlayerId(),
+                            'message' => $message,
+                            'timeout' => 10,
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
     private function change_player_pos_in_collection(array &$collection, $key, Session $session, int $x, int $y)
     {
         if (!isset($collection[$key])) {
@@ -136,6 +191,7 @@ class MultiplayerService
             }
         }
     }
+    
 
     public function get_floor(int $room_id) 
     {

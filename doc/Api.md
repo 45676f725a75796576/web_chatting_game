@@ -22,7 +22,7 @@ The user disconnects when the WebSocket closes. On disconnect the server sends a
 
 ### joining the server
 1. client sends a "enter_game" packet
-2. server responds with a "server_place" packet
+2. server responds with a "server_room" packet
 3. the [multiplayer session](#multiplayer-session) starts
 
 ## multiplayer session
@@ -34,9 +34,31 @@ in the multiplayer session the client can send movement commands at any time and
 3. server sends a "server_player_pos" packet to all other clients joined in the session
 
 ### user moves into another room
-1. client sends a "enter_destination" packet
-2. server responds with packet "server_place"
+1. client sends a "enter_room" packet
+2. server responds with packet "server_room"
 3. server sends a "server_disconnect" packet to all other clients joined in the session
+
+### user moves into another floor
+1. client sends a "enter_floor" packet
+2. server responds with packet "server_floor"
+3. server sends a "server_disconnect" packet to all other clients joined in the session
+
+### user sends a chat message
+1. client sends a "chat" packet
+2. server does not respond
+3. server sends a "server_chat" packet to all other clients joined in the session
+
+
+### user changes his skin
+1. client sends a "skin" packet
+2. server returns success or error
+3. all newly connected players will see the new skin
+
+### user changes his room skin
+1. client sends a "room_skin" packet
+2. server returns success or error
+3. all newly connected players will see the new room skin
+
 
 ## packets
 
@@ -103,31 +125,53 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-### server_place
+### server_room
 - success
 ```
 {
-    "type": "server_place",
+    "type": "server_room",
     "state": "success",
-    "place": {
-        "img": <url to the room or floor image>,
-        "id": <id of the room or floor>,
-        "is_floor": <0 or 1>
-    }
+    "img": <url to the room image>,
+    "room_id": <id of the room>,
+    "floor": <the floor this room is at>
 }
 
 ```
 - error
 ```
 {
-    "type": "server_place",
+    "type": "server_room",
     "state": "error",
     "message": <message>
 }
+```
+### server_floor
+- success
+```
+{
+    "type": "server_floor",
+    "state": "success",
+    "img": <url to the floor image>,
+    "floor_id": <id of the floor>,
+    "rooms": [
+        <room id>,
+        <room id>,
+        <room id>,
+        <room id>,
+    ]
+}
 
 ```
+- error
+```
+{
+    "type": "server_floor",
+    "state": "error",
+    "message": <message>
+}
+```
 
-## player_pos
+### player_pos
 ```
 {
     "type": "player_pos",
@@ -138,7 +182,7 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## server_player_pos
+### server_player_pos
 ```
 {
     "type": "server_player_pos",
@@ -150,16 +194,23 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## enter_destination
+### enter_floor
 ```
 {
-    "type": "enter_destination",
-    "dest_id": <id of the room or floor>,
-    "is_floor": <0 or 1>
+    "type": "enter_floor",
+    "floor_id": <id of the floor>,
 }
 ```
 
-## server_disconnect
+### enter_room
+```
+{
+    "type": "enter_room",
+    "room_id": <id of the room>,
+}
+```
+
+### server_disconnect
 ```
 {
     "type": "server_disconnect",
@@ -167,16 +218,84 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-## server_new_player
+### chat
 ```
 {
-    "type": "server_new_player",
-    "player_id": <player id>,
-    "username": <player username>,
-    "img": <player skin>,
-    "pos": {
-        "x": <pos x>,
-        "y": <pos y>
-    }
+    "type":"chat",
+    "player_id": <players id>,
+    "message": <text message>
+}
+```
+
+### server_chat
+**success:** 
+```
+{
+    "type":"server_chat",
+    "state": "success",
+    "player_id": <players id>,
+    "message": <text message>,
+    "timeout": <number of seconds>
+}
+```
+
+**error:** 
+```
+{
+    "type":"server_chat",
+    "state": "error",
+    "message": <error message>,
+}
+```
+
+### server_room_skin
+**success:** 
+```
+{
+    "type":"server_room_skin",
+    "state": "success",
+}
+```
+
+**error:** 
+```
+{
+    "type":"server_room_skin",
+    "state": "error",
+    "message": <error message>,
+}
+```
+
+### server_skin
+**success:** 
+```
+{
+    "type":"server_skin",
+    "state": "success",
+}
+```
+
+**error:** 
+```
+{
+    "type":"server_skin",
+    "state": "error",
+    "message": <error message>,
+}
+```
+
+### skin
+```
+{
+    "type":"skin",
+    "url": <skin url>
+}
+```
+
+### room_skin
+```
+{
+    "type":"room_skin",
+    "url": <skin url>
 }
 ```
