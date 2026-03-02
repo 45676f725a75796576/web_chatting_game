@@ -10,6 +10,8 @@ class Player {
         this.skinLoaded = false;
         this.skinWidth = 0.4; // 40px default
         this.skinHeight = 0.4; // 40px default
+        const randomSkin = CONFIG.SKINS[Math.floor(Math.random() * CONFIG.SKINS.length)];
+        this.setSkin(randomSkin);
     }
 
     generateColor(id) {
