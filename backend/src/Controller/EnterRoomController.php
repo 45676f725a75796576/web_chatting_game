@@ -67,11 +67,9 @@ class EnterRoomController extends AbstractPacketController
 
         $session->send([
             'type' => 'server_room',
-            'place' => [
-                'img' => $dest_player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
-                'room_id' => $dest_player->getPlayerId(),
-                'floor' => $this->multiplayer_service->get_floor($dest_player->getPlayerId())
-            ]
+            'img' => $dest_player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
+            'room_id' => $dest_player->getPlayerId(),
+            'floor' => $this->multiplayer_service->get_floor($dest_player->getPlayerId())
         ]);
 
         foreach($packets as $p) {

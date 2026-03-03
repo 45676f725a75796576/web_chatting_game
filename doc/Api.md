@@ -52,12 +52,12 @@ in the multiplayer session the client can send movement commands at any time and
 ### user changes his skin
 1. client sends a "skin" packet
 2. server returns success or error
-3. all newly connected players will see the new skin
+3. all connected players will get packet "server_skin_update"
 
 ### user changes his room skin
 1. client sends a "room_skin" packet
 2. server returns success or error
-3. all newly connected players will see the new room skin
+3. all connected players will get packet "server_room_skin_update"
 
 
 ## packets
@@ -296,6 +296,23 @@ in the multiplayer session the client can send movement commands at any time and
 ```
 {
     "type":"room_skin",
+    "url": <skin url>
+}
+```
+
+### server_skin_update
+```
+{
+    "type":"server_skin_update",
+    "player_id":<player id>,
+    "url": <skin url>
+}
+```
+
+### server_room_skin_update
+```
+{
+    "type":"server_room_skin_update",
     "url": <skin url>
 }
 ```

@@ -39,7 +39,7 @@ class PlayerRepository extends ServiceEntityRepository
         do {
             $identifier = '';
             for ($i = 0; $i < 5; $i++) {
-                $identifier .= $letters[random_int(0, 25)];
+                $identifier .= $letters[random_int(0, 52)];
             }
 
             $existing = $this->findOneBy(['identifierStr' => $identifier]);
