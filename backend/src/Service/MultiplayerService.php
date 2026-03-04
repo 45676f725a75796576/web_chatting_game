@@ -88,7 +88,7 @@ class MultiplayerService
 
         $session->data->x = 0;
         $session->data->y = 0;
-        return $this->add_session_to_collection($this->rooms, $player->getPlayerId(), $session);
+        return $this->add_session_to_collection($this->rooms, $player->get_player_id(), $session);
     }
 
     public function join_floor(Session $session, int $floor_id): array
