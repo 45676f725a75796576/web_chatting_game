@@ -8,8 +8,10 @@ class Player {
         this.skinUrl = null;
         this.skinImage = null;
         this.skinLoaded = false;
-        this.skinWidth = 0.4; // 40px default
-        this.skinHeight = 0.4; // 40px default
+        this.skinWidth = 0.4;
+        this.skinHeight = 0.4;
+        this.flip = false; // false = вправо, true = влево
+
         const randomSkin = CONFIG.SKINS[Math.floor(Math.random() * CONFIG.SKINS.length)];
         this.setSkin(randomSkin);
     }
@@ -25,35 +27,28 @@ class Player {
         this.skinHeight = height;
         this.skinLoaded = false;
         this.skinImage = new Image();
-        
-        this.skinImage.onload = () => {
-            this.skinLoaded = true;
-            console.log('Skin loaded:', url);
-        };
-        
+        this.skinImage.onload = () => { this.skinLoaded = true; };
         this.skinImage.onerror = () => {
-            console.error('Failed to load skin:', url);
             this.skinUrl = null;
             this.skinImage = null;
             this.skinLoaded = false;
         };
-        
         this.skinImage.src = url;
     }
 
-    setPosition(x, y) {
-        this.x = x;
-        this.y = y;
-    }
+    setPosition(x, y) { this.x = x; this.y = y; }
 
     move(dx, dy) {
+        // Обновляем flip только при горизонтальном движении
+        if (dx < 0) this.flip = true;
+        if (dx > 0) this.flip = false;
         this.x += dx;
         this.y += dy;
         this.clampPosition();
     }
 
     clampPosition() {
-        this.x = Math.max(CONFIG.PLAYER_RADIUS, Math.min(CONFIG.CANVAS_WIDTH - CONFIG.PLAYER_RADIUS, this.x));
+        this.x = Math.max(CONFIG.PLAYER_RADIUS, Math.min(CONFIG.CANVAS_WIDTH  - CONFIG.PLAYER_RADIUS, this.x));
         this.y = Math.max(CONFIG.PLAYER_RADIUS, Math.min(CONFIG.CANVAS_HEIGHT - CONFIG.PLAYER_RADIUS, this.y));
     }
 }
