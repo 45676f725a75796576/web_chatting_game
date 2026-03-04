@@ -77,13 +77,17 @@ class MultiplayerService
         return $packets;
     }
 
-    public function join_room(Session $session, Player $player): array
+    public function join_room(Session $session, Player $player): ?array
     {
         if (!$session->data->player) {
             throw new \Exception("unauthenticated player");
         }
 
-        $session->data->room = $player->getPlayerId();
+        if($player->get_locked()) {
+            return null;
+        }
+
+        $session->data->room = $this->get_player_room($player);
         $session->data->floor = null;
 
         $session->data->x = 0;
@@ -91,7 +95,7 @@ class MultiplayerService
         return $this->add_session_to_collection($this->rooms, $player->getPlayerId(), $session);
     }
 
-    public function join_floor(Session $session, int $floor_id): array
+    public function join_floor(Session $session, int $floor_id): ?array
     {
         if (!$session->data->player) {
             throw new \Exception("unauthenticated player");
@@ -187,14 +191,14 @@ class MultiplayerService
         $this->em->flush();
     
         $packet = null;
-        $playerId = $player->getPlayerId();
+        $room_id = $this->get_player_room($player);
     
-        if (!empty($this->rooms[$playerId])) {
-            foreach ($this->rooms[$playerId] as $s) {
+        if (!empty($this->rooms[$room_id])) {
+            foreach ($this->rooms[$room_id] as $s) {
     
                 $data = [
                     'type' => 'server_room_skin_update',
-                    'url' => $player->getRoomImg(), // ✅ correct field
+                    'url' => $player->getRoomImg(),
                 ];
     
                 if ($s !== $session) {
@@ -269,7 +273,16 @@ class MultiplayerService
             }
         }
     }
+
+    public function get_player_room(Player $player): int
+    {
+        return $player->getPlayerId();
+    }
     
+    public function get_room_by_player(int $room_id): ?Player
+    {
+        return $this->player_repository->findById($room_id);
+    }
 
     public function get_floor(int $room_id) 
     {
@@ -283,7 +296,7 @@ class MultiplayerService
             $id = $i + $floor_id;
             $player = $this->player_repository->findById($id);
             if($player != null) {
-                array_push($floor_rooms, (string)$id);
+                array_push($floor_rooms, (string)$this->get_player_room($player));
             }
         }
 
