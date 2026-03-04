@@ -25,18 +25,42 @@ class MultiplayerService
         private Server $server,
     ) {}
     
+    function uuidv4(): string
+    {
+        $data = random_bytes(16);
+
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
     private function ban(string $username) {
         $player = $this->player_repository->find_by_username($username);
 
+        $this->logger->warning("x");
         if (!$player) {
             $this->logger->warning("attempted to ban nonexistent player: $username");
             return;
         }
 
+        $this->logger->warning("xx");
         $player->set_img(null);
         $player->set_room_img(null);
-        $player->set_identifier_str("saaataaaaaa aaaannnnnddaagiiiiiiiiii!!!!!!!!!!!");
+
+        $stop = false;
+        while(!$stop) {
+            try {
+                $player->set_identifier_str($this->uuidv4());
+                $stop = true;
+            } catch(\Throwable $e) {
+                $stop = false;
+            }
+        }
         $this->em->flush();
+
+        $this->kick($username);
 
         $this->logger->info("player $username (id {$player->get_player_id()}) was banned");
     }
@@ -374,7 +398,7 @@ class MultiplayerService
     {
         $floor_rooms = [];
         for($i = 1; $i < $this->room_count + 1; $i++) {
-            $id = $i + $floor_id;
+            $id = $i + ($floor_id * 3);
             $player = $this->player_repository->find_by_id($id);
             if($player != null) {
                 array_push($floor_rooms, (string)$this->get_player_room($player));

@@ -49,7 +49,8 @@ class EnterGameController extends AbstractPacketController
 
         $session->send($this->packet_service->server_room(
             $player->get_room_img() ?? $this->asset_service->get_room_default(),
-            $player->get_player_id(),
+            $this->multiplayer_service->get_player_room($player),
+            $player->get_username(),
             $this->multiplayer_service->get_floor($player->get_player_id())
         ));
 

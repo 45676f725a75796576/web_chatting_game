@@ -41,10 +41,12 @@ class SignInController extends AbstractPacketController
             return;
         }
 
+        $room = $this->multiplayer_service->get_player_room($player);
         $session->send($this->packet_service->server_sign_in(
             $player->get_identifier_str(),
             $player->get_player_id(),
-            $this->multiplayer_service->get_player_room($player),
+            $room,
+            $this->multiplayer_service->get_floor($room),
             $player->get_img() ?? $this->asset_service->get_player_default(),
         ));
     }

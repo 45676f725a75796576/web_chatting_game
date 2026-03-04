@@ -41,10 +41,12 @@ class LoginController extends AbstractPacketController
             return;
         }
         
+        $room = $this->multiplayer_service->get_player_room($player);
         $this->send($session, $this->packet_service->server_login(
             $player->get_username(),
             $player->get_player_id(),
-            $this->multiplayer_service->get_player_room($player),
+            $room,
+            $this->multiplayer_service->get_floor($room),
             $player->get_img() ?? $this->asset_service->get_player_default()
         ));
     }

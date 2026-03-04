@@ -4,24 +4,26 @@ namespace App\Service;
 
 class PacketService
 {
-    public function server_sign_in(string $identifier, int $player_id, int $room_id, string $img_url): array {
+    public function server_sign_in(string $identifier, int $player_id, int $room_id, int $floor_id, string $img_url): array {
         return [
             'type' => 'server_sign_in',
             'state' => 'success',
             'identifier_str' => $identifier,
             'player_id' => $player_id,
             'room_id' => $room_id,
+            'floor_id' => $floor_id,
             'img' => $img_url
         ];
     }
     
 
-    public function server_login(string $username, int $player_id, int $room_id, string $img_url): array {
+    public function server_login(string $username, int $player_id, int $room_id, int $floor_id, string $img_url): array {
         return [
             'type' => 'server_login',
             'state' => 'success',
             'player_id' => $player_id,
             'room_id' => $room_id,
+            'floor_id' => $floor_id,
             'username' => $username,
             'img' => $img_url
         ];
