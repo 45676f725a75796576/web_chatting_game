@@ -24,6 +24,9 @@ class Player
     
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private ?string $roomImg = null;
+    
+    #[ORM\Column(type: "bool")]
+    private bool $locked = false;
 
     public function getPlayerId(): int
     {
@@ -33,6 +36,11 @@ class Player
     public function getIdentifierStr(): string
     {
         return $this->identifierStr;
+    }
+
+    public function get_locked(): bool
+    {
+        return $this->locked;
     }
 
     public function setIdentifierStr(string $identifierStr): self
@@ -72,5 +80,10 @@ class Player
     {
         $this->roomImg = $img;
         return $this;
+    }
+    
+    public function set_locked(bool $locked)
+    {
+        $this->locked = $locked;
     }
 }

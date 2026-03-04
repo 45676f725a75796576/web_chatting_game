@@ -56,6 +56,15 @@ class EnterRoomController extends AbstractPacketController
         $packets = null;
         try {
             $packets = $this->multiplayer_service->join_room($session, $dest_player);
+            if(!$packets) {
+                $this->send($session, [
+                    'type' => 'server_room',
+                    'state' => 'error',
+                    'message' => 'room is locked',
+                ]);
+                return; 
+            }
+
         } catch (\Throwable $e) {
             $this->send($session, [
                 'type' => 'server_room',

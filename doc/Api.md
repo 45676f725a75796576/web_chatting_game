@@ -322,6 +322,13 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
+### room_lock
+```
+{
+    "type":"room_lock",
+    "lock": <true or false>
+```
+
 ### utm
 ```
 {
