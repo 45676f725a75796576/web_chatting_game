@@ -7,6 +7,7 @@ The communication is through sending JSON packets divided by a new line characte
 ## Global behaviour
 The user disconnects when the WebSocket closes. On disconnect the server sends a "server_disconnect" packet to all the other clients.
 
+All web socket packets may have packet type "server_error".
 
 ## Before multiplayer session
 
@@ -81,14 +82,6 @@ in the multiplayer session the client can send movement commands at any time and
     "img": <url to the player skin>
 }
 ```
-- error
-```
-{
-    "type":"server_sign_in",
-    "state": "error",
-    "message": <error message>
-}
-```
 
 ### login
 ```
@@ -100,21 +93,12 @@ in the multiplayer session the client can send movement commands at any time and
 ```
 
 ### server_login
-- success
 ```
 {
     "type":"server_login",
     "state": "success",
     "player_id": <id of the player>,
     "img": <url to the player skin>
-}
-```
-- error
-```
-{
-    "type":"server_login",
-    "state": "error",
-    "message": <error message>
 }
 ```
 
@@ -126,7 +110,6 @@ in the multiplayer session the client can send movement commands at any time and
 ```
 
 ### server_room
-- success
 ```
 {
     "type": "server_room",
@@ -135,18 +118,9 @@ in the multiplayer session the client can send movement commands at any time and
     "room_id": <id of the room>,
     "floor": <the floor this room is at>
 }
+```
 
-```
-- error
-```
-{
-    "type": "server_room",
-    "state": "error",
-    "message": <message>
-}
-```
 ### server_floor
-- success
 ```
 {
     "type": "server_floor",
@@ -159,15 +133,6 @@ in the multiplayer session the client can send movement commands at any time and
         <room id>,
         <room id>,
     ]
-}
-
-```
-- error
-```
-{
-    "type": "server_floor",
-    "state": "error",
-    "message": <message>
 }
 ```
 
@@ -228,7 +193,6 @@ in the multiplayer session the client can send movement commands at any time and
 ```
 
 ### server_chat
-**success:** 
 ```
 {
     "type":"server_chat",
@@ -239,48 +203,19 @@ in the multiplayer session the client can send movement commands at any time and
 }
 ```
 
-**error:** 
-```
-{
-    "type":"server_chat",
-    "state": "error",
-    "message": <error message>,
-}
-```
-
 ### server_room_skin
-**success:** 
 ```
 {
     "type":"server_room_skin",
     "state": "success",
-}
-```
-
-**error:** 
-```
-{
-    "type":"server_room_skin",
-    "state": "error",
-    "message": <error message>,
 }
 ```
 
 ### server_skin
-**success:** 
 ```
 {
     "type":"server_skin",
     "state": "success",
-}
-```
-
-**error:** 
-```
-{
-    "type":"server_skin",
-    "state": "error",
-    "message": <error message>,
 }
 ```
 
@@ -314,5 +249,14 @@ in the multiplayer session the client can send movement commands at any time and
 {
     "type":"server_room_skin_update",
     "url": <skin url>
+}
+```
+
+### server_error
+```
+{
+    "type": "server_error",
+    "state": "error",
+    "message": <error message>
 }
 ```

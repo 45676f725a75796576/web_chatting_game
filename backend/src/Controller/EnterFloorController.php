@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Session;
-use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 use App\Service\PacketService;
