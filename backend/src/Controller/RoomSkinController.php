@@ -10,9 +10,7 @@ use App\Service\AssetService;
 class RoomSkinController extends AbstractPacketController
 {
     public function __construct(
-        private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
-        private AssetService $asset_service
     ) {}
 
     public function supports(string $type): bool

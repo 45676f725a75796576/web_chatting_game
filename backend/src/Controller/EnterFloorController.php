@@ -59,7 +59,7 @@ class EnterFloorController extends AbstractPacketController
             
         $session->send([
             'type' => 'server_floor',
-            'img' => $this->asset_service->getFloor(),
+            'img' => $this->asset_service->get_floor(),
             'floor_id' => $floor_id,
             'rooms' => $this->multiplayer_service->get_rooms($floor_id)
         ]);

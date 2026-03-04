@@ -3,7 +3,7 @@
 namespace App\Command;
 
 use App\WebSocket\Server;
-use React\EventLoop\Factory;
+use React\EventLoop\Loop;
 use React\Socket\SocketServer;
 use Ratchet\Http\HttpServer;
 use Ratchet\WebSocket\WsServer;
@@ -24,7 +24,7 @@ class WebSocketServerCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $loop = Factory::create();
+        $loop = Loop::get();
 
         $socket = new SocketServer('0.0.0.0:8080', [], $loop);
 

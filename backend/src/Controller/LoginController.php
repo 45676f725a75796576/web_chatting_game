@@ -46,9 +46,9 @@ class LoginController extends AbstractPacketController
         $this->send($session, [
             'type' => 'server_login',
             'state' => 'success',
-            'username' => $player->getUsername(),
-            'player_id' => $player->getPlayerId(),
-            'img' => $player->getImg() ?? $this->asset_service->getPlayerDefault()
+            'username' => $player->get_username(),
+            'player_id' => $player->get_player_id(),
+            'img' => $player->get_img() ?? $this->asset_service->get_player_default()
         ]);
     }
 }

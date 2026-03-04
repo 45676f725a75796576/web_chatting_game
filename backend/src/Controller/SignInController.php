@@ -46,13 +46,13 @@ class SignInController extends AbstractPacketController
         $this->send($session, [
             'type' => 'server_sign_in',
             'state' => 'success',
-            'identifier_str' => $player->getIdentifierStr(),
-            'player_id' => $player->getPlayerId(),
-            'img' => $player->getImg() ?? $this->asset_service->getPlayerDefault()
+            'identifier_str' => $player->get_identifier_str(),
+            'player_id' => $player->get_player_id(),
+            'img' => $player->get_img() ?? $this->asset_service->get_player_default()
         ]);
     }
 
-    function randomLetters(int $length): string
+    function random_letters(int $length): string
     {
         $letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $result = '';
