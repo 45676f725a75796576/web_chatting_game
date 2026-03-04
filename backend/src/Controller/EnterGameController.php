@@ -5,12 +5,14 @@ namespace App\Controller;
 use App\Entity\Session;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
+use App\Service\PacketService;
 
 class EnterGameController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
-        private AssetService $asset_service
+        private AssetService $asset_service,
+        private PacketService $packet_service
     ) {}
 
     public function supports(string $type): bool
@@ -22,11 +24,7 @@ class EnterGameController extends AbstractPacketController
     {
         if(!$session->data->player)
         {
-            $session->send([
-                'type' => 'server_room',
-                'state' =>'error',
-                'message' => 'user is not authenticated'
-            ]);
+            $session->send($this->packet_service->server_error('user is not authenticated'));
             return;
         }
 
@@ -44,22 +42,16 @@ class EnterGameController extends AbstractPacketController
                 return;
             }
         } catch (\Throwable $e) {
-            $this->send($session, [
-                'type' => 'server_room',
-                'state' => 'error',
-                'message' => $e->getMessage(),
-            ]);
+            $session->send($this->packet_service->server_error('failed to join the room'));
             return;
         }
 
-        $session->send([
-            'type' => 'server_room',
-            'state' => 'success',
-            'img' => $player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
-            'room_id' => $player->getPlayerId(),
-            "floor" => $this->multiplayer_service->get_floor($player->getPlayerId())
-        ]);
-            
+        $session->send($this->packet_service->server_room(
+            $player->get_room_img() ?? $this->asset_service->get_room_default(),
+            $player->get_player_id(),
+            $this->multiplayer_service->get_floor($player->get_player_id())
+        ));
+
         foreach($packets as $p) {
             $session->send($p);
         }

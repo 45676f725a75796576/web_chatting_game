@@ -14,13 +14,13 @@ class PlayerRepository extends ServiceEntityRepository
         parent::__construct($registry, Player::class);
     }
 
-    public function findById(int $id): ?Player
+    public function find_by_id(int $id): ?Player
     {
         return $this->find($id);
     }
 
     
-    public function findByUsernameAndIdentifier(string $username, string $identifier): ?Player 
+    public function find_by_username_and_identifier(string $username, string $identifier): ?Player 
     {
          return $this->createQueryBuilder('p')
             ->andWhere('p.username = :username')
@@ -31,7 +31,7 @@ class PlayerRepository extends ServiceEntityRepository
             ->getOneOrNullResult(); 
     }
     
-    private function generateUniqueIdentifier(): string
+    private function generate_unique_identifier(): string
     {
         $letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         $entityManager = $this->getEntityManager();
@@ -48,25 +48,25 @@ class PlayerRepository extends ServiceEntityRepository
         return $identifier;
     }
 
-    public function insertPlayer(string $username, ?string $img = null): Player
+    public function insert_player(string $username, ?string $img = null): Player
     {
-        $entityManager = $this->getEntityManager();
+        $entityManager = $this->get_entity_manager();
 
-        $existing = $this->findOneBy(['username' => $username]);
+        $existing = $this->find_one_by(['username' => $username]);
         if ($existing) {
             throw new \Exception("Username '$username' already exists.");
         }
 
         $player = new Player();
-        $player->setUsername($username);
-        $player->setImg($img);
-        $player->setIdentifierStr($this->generateUniqueIdentifier());
+        $player->set_username($username);
+        $player->set_img($img);
+        $player->set_identifier_str($this->generate_unique_identifier());
 
         try {
             $entityManager->persist($player);
             $entityManager->flush();
         } catch (UniqueConstraintViolationException $e) {
-            throw new \Exception("Failed to insert player: " . $e->getMessage());
+            throw new \Exception("failed to insert player");
         }
 
         return $player;

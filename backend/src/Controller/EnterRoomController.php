@@ -6,13 +6,15 @@ use App\Entity\Session;
 use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
+use App\Service\PacketService;
 
 class EnterRoomController extends AbstractPacketController
 {
     public function __construct(
         private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
-        private AssetService $asset_service
+        private AssetService $asset_service,
+        private PacketService $packet_service
     ) {}
 
     public function supports(string $type): bool
@@ -24,32 +26,20 @@ class EnterRoomController extends AbstractPacketController
     {
         if(!$session->data->player)
         {
-            $session->send([
-                'type' => 'server_room',
-                'state' =>'error',
-                'message' => 'user is not authenticated'
-            ]);
+            $session->send($this->packet_service->server_error('user is not authenticated'));
             return;
         }
 
         $room_id = $packet['room_id'];
 
         if(!$room_id) {
-            $session->send([
-                'type' => 'server_room',
-                'state' =>'error',
-                'message' => 'missing room_id'
-            ]);
+            $session->send($this->packet_service->server_error('missing room_id'));
             return;
         }
 
         $dest_player = $this->player_repository->findById($room_id);
         if(!$dest_player) {
-            $session->send([
-                'type' => 'server_room',
-                'state' =>'error',
-                'message' => 'room not found'
-            ]);
+            $session->send($this->packet_service->server_error('room not found'));
         }
 
 
@@ -66,20 +56,15 @@ class EnterRoomController extends AbstractPacketController
             }
 
         } catch (\Throwable $e) {
-            $this->send($session, [
-                'type' => 'server_room',
-                'state' => 'error',
-                'message' => 'failed to join the room',
-            ]);
+            $session->send($this->packet_service->server_error('failed to join the room'));
             return;
         }
 
-        $session->send([
-            'type' => 'server_room',
-            'img' => $dest_player->getRoomImg() ?? $this->asset_service->getRoomDefault(),
-            'room_id' => $dest_player->getPlayerId(),
-            'floor' => $this->multiplayer_service->get_floor($dest_player->getPlayerId())
-        ]);
+        $session->send($this->packet_service->server_room(
+            $dest_player->get_room_img() ?? $this->asset_service->get_room_default(),
+            $dest_player->get_player_id(),
+            $this->multiplayer_service->get_floor($dest_player->get_player_id())
+        ));
 
         foreach($packets as $p) {
             $session->send($p);

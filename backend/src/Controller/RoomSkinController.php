@@ -3,16 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Session;
-use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
-use App\Service\AssetService;
+use App\Service\PacketService;
 
 class RoomSkinController extends AbstractPacketController
 {
     public function __construct(
-        private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
-        private AssetService $asset_service
+        private PacketService $packet_service,
     ) {}
 
     public function supports(string $type): bool
@@ -24,34 +22,24 @@ class RoomSkinController extends AbstractPacketController
     {
         if(!$session->data->player)
         {
-            $session->send([
-                'type' => 'server_room_skin',
-                'state' =>'error',
-                'message' => 'user is not authenticated'
-            ]);
+            $session->send($this->packet_service->server_error('user is not authenticated'));
             return;
         }
 
         $url = $packet['url'];
         if(!$url) {
-            $session->send([
-                'type' => 'server_room_skin',
-                'state' =>'error',
-                'message' => 'missing url'
-            ]);
+            $session->send($this->packet_service->server_error('missing url'));
             return;
         }
 
         $res_packet = $this->multiplayer_service->change_room_skin($session, $url);
 
-        $session->send([
-            'type' => 'server_room_skin',
-            'state' =>'success',
-        ]);
+        $session->send($this->packet_service->server_success());
 
         if($res_packet) {
             $session->send($res_packet);
         }
+        
         return;
     }
 }

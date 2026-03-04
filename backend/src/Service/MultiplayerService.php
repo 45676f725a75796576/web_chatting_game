@@ -30,7 +30,7 @@ class MultiplayerService
             ($session->on_disconnect)();
         }
 
-        $player_id = $session->data->player->getPlayerId(); 
+        $player_id = $session->data->player->get_player_id(); 
         $session->on_disconnect = function() use (&$collection, $key, $session, $player_id) {
             $index = array_search($session, $collection[$key], true);
             if ($index !== false) {
@@ -52,9 +52,9 @@ class MultiplayerService
             if($s != $session) {
                 $s->send([
                     'type' => 'server_new_player',
-                    'player_id' => $session->data->player->getPlayerId(),
-                    'username' => $session->data->player->getUsername(),
-                    'img' => $session->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
+                    'player_id' => $session->data->player->get_player_id(),
+                    'username' => $session->data->player->get_username(),
+                    'img' => $session->data->player->get_img() ?? $this->asset_service->get_player_default(),
                     'pos' => [
                         'x' => $session->data->x,
                         'y' => $session->data->y,
@@ -64,7 +64,7 @@ class MultiplayerService
                     'type' => 'server_new_player',
                     'player_id' => $s->data->player->getPlayerId(),
                     'username' => $s->data->player->getUsername(),
-                    'img' => $s->data->player->getImg() ?? $this->asset_service->getPlayerDefault(),
+                    'img' => $s->data->player->get_img() ?? $this->asset_service->get_player_default(),
                     'pos' => [
                         'x' => $s->data->x,
                         'y' => $s->data->y,
@@ -92,7 +92,7 @@ class MultiplayerService
 
         $session->data->x = 0;
         $session->data->y = 0;
-        return $this->add_session_to_collection($this->rooms, $player->getPlayerId(), $session);
+        return $this->add_session_to_collection($this->rooms, $player->get_player_id(), $session);
     }
 
     public function join_floor(Session $session, int $floor_id): ?array
@@ -131,7 +131,7 @@ class MultiplayerService
             throw new \Exception("unauthenticated player");
         }
 
-        $session->data->player->setImg($url);
+        $session->data->player->set_img($url);
         
         $this->em->flush();
         
@@ -142,14 +142,14 @@ class MultiplayerService
                     if($s != $session) {
                         $s->send([
                             'type' => 'server_skin_update',
-                            'player_id' => $session->data->player->getPlayerId(),
-                            'url' => $session->data->player->getImg(),
+                            'player_id' => $session->data->player->get_player_id(),
+                            'url' => $session->data->player->get_img(),
                         ]);
                     } else {
                         $packet = [
                             'type' => 'server_skin_update',
-                            'player_id' => $session->data->player->getPlayerId(),
-                            'url' => $session->data->player->getImg(),
+                            'player_id' => $session->data->player->get_player_id(),
+                            'url' => $session->data->player->get_img(),
                         ];
                     }
                 }
@@ -161,15 +161,15 @@ class MultiplayerService
                         if($s != $session) {
                             $s->send([
                                 'type' => 'server_skin_update',
-                                'player_id' => $session->data->player->getPlayerId(),
-                                'url' => $session->data->player->getImg(),
+                                'player_id' => $session->data->player->get_player_id(),
+                                'url' => $session->data->player->get_img(),
                             ]);
                         }
                     } else {
                         $packet = [
                             'type' => 'server_skin_update',
-                            'player_id' => $session->data->player->getPlayerId(),
-                            'url' => $session->data->player->getImg(),
+                            'player_id' => $session->data->player->get_player_id(),
+                            'url' => $session->data->player->get_img(),
                         ];
                     }
                 }
@@ -186,7 +186,7 @@ class MultiplayerService
         }
     
         $player = $session->data->player;
-        $player->setRoomImg($url);
+        $player->set_room_img($url);
     
         $this->em->flush();
     
@@ -198,7 +198,7 @@ class MultiplayerService
     
                 $data = [
                     'type' => 'server_room_skin_update',
-                    'url' => $player->getRoomImg(),
+                    'url' => $player->get_room_img(),
                 ];
     
                 if ($s !== $session) {
@@ -224,7 +224,7 @@ class MultiplayerService
                     if($s != $session) {
                         $s->send([
                             'type' => 'server_chat',
-                            'player_id' => $session->data->player->getPlayerId(),
+                            'player_id' => $session->data->player->get_player_id(),
                             'message' => $message,
                             'timeout' => 10,
                         ]);
@@ -237,7 +237,7 @@ class MultiplayerService
                     if($s != $session) {
                         $s->send([
                             'type' => 'server_chat',
-                            'player_id' => $session->data->player->getPlayerId(),
+                            'player_id' => $session->data->player->get_player_id(),
                             'message' => $message,
                             'timeout' => 10,
                         ]);
@@ -248,7 +248,7 @@ class MultiplayerService
 
         return ([
             'type' => 'server_chat',
-            'player_id' => $session->data->player->getPlayerId(),
+            'player_id' => $session->data->player->get_player_id(),
             'message' => $message,
             'timeout' => 10,
         ]);
@@ -264,7 +264,7 @@ class MultiplayerService
             if ($s !== $session) {
                 $s->send([
                     'type' => 'server_player_pos',
-                    'player_id' => $session->data->player->getPlayerId(),
+                    'player_id' => $session->data->player->get_player_id(),
                     'pos' => [
                         'x' => $x,
                         'y' => $y,

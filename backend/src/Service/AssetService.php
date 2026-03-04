@@ -4,17 +4,17 @@ namespace App\Service;
 
 class AssetService
 {
-    public function getPlayerDefault(): string
+    public function get_player_default(): string
     {
         return 'https://cataas.com/cat';
     }
     
-    public function getRoomDefault(): string
+    public function get_room_default(): string
     {
         return 'https://cataas.com/cat';
     }
     
-    public function getFloor(): string
+    public function get_floor(): string
     {
         return 'https://cataas.com/cat';
     }
