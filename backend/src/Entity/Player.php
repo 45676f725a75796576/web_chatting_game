@@ -73,4 +73,9 @@ class Player
         $this->room_img = $img;
         return $this;
     }
+    
+    public function set_locked(bool $locked)
+    {
+        $this->locked = $locked;
+    }
 }
