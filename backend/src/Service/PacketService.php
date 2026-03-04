@@ -4,33 +4,36 @@ namespace App\Service;
 
 class PacketService
 {
-    public function server_sign_in(string $identifier, int $player_id, string $img_url): array {
+    public function server_sign_in(string $identifier, int $player_id, int $room_id, string $img_url): array {
         return [
             'type' => 'server_sign_in',
             'state' => 'success',
             'identifier_str' => $identifier,
             'player_id' => $player_id,
+            'room_id' => $room_id,
             'img' => $img_url
         ];
     }
     
 
-    public function server_login(string $username, int $player_id, string $img_url): array {
+    public function server_login(string $username, int $player_id, int $room_id, string $img_url): array {
         return [
             'type' => 'server_login',
             'state' => 'success',
             'player_id' => $player_id,
+            'room_id' => $room_id,
             'username' => $username,
             'img' => $img_url
         ];
     }
 
-    public function server_room(string $img_url, int $room_id, int $floor): array {
+    public function server_room(string $img_url, int $room_id, string $username, int $floor): array {
         return [
             'type' => 'server_room',
             'state' => 'success',
             'img' => $img_url,
             'room_id' => $room_id,
+            'username' => $username,
             'floor' => $floor
         ];
     }
@@ -45,11 +48,12 @@ class PacketService
         ];
     }
 
-    public function server_player_pos(int $player_id, int $x, int $y): array {
+    public function server_player_pos(int $player_id, int $x, int $y, bool $flip): array {
         return [
             'type' => 'server_player_pos',
             'player_id' => $player_id,
-            'pos' => ['x' => $x, 'y' => $y]
+            'pos' => ['x' => $x, 'y' => $y],
+            'flip' => $flip
         ];
     }
 
@@ -98,6 +102,19 @@ class PacketService
             'type' => 'server_error',
             'state' => 'error',
             'message' => $message
+        ];
+    }
+
+    public function server_new_player(int $player_id, string $username, string $img, int $x, int $y) {
+        return [
+            'type' => 'server_new_player',
+            'player_id' => $player_id,
+            'username' => $username,
+            'img' => $img,
+            'pos' => [
+                'x' => $x,
+                'y' => $y,
+            ]
         ];
     }
 }

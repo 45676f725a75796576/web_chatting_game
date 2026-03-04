@@ -30,18 +30,18 @@ class EnterGameController extends AbstractPacketController
             return;
         }
 
-        $player = null;
         $packets = null;
         try {
             $player = $session->data->player;
-            $packets = $this->multiplayer_service->join_room($session, $player);
-            if($packets == null) {
+            try {
+                $packets = $this->multiplayer_service->join_room($session, $player);
+            } catch(\Throwable $e) {
                 $session->send($this->packet_service->server_error('room is locked'));
                 return;
             }
-        } catch (\Throwable $e) {
+        } catch (\Throwable $ex) {
             $this->logger->error('Exception occurred', [
-                'exception' => $e->getMessage(),
+                'exception' => $ex->getMessage(),
             ]);
             $session->send($this->packet_service->server_error('failed to join the room'));
             return;

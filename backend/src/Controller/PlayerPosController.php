@@ -3,9 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Session;
-use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
-use App\Service\AssetService;
 
 class PlayerPosController extends AbstractPacketController
 {
@@ -27,7 +25,8 @@ class PlayerPosController extends AbstractPacketController
 
         $x = $packet['pos']['x'];
         $y = $packet['pos']['y'];
+        $flip = $packet['pos']['flip'];
 
-        $this->multiplayer_service->update_player_pos($session, $x, $y);
+        $this->multiplayer_service->update_player_pos($session, $x, $y, $flip);
     }
 }

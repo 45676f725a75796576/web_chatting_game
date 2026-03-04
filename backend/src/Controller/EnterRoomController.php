@@ -39,18 +39,19 @@ class EnterRoomController extends AbstractPacketController
             return;
         }
 
-        $dest_player = $this->player_repository->findById($room_id);
+        $dest_player = $this->player_repository->find_by_id($room_id);
         if(!$dest_player) {
             $session->send($this->packet_service->server_error('room not found'));
+            return;
         }
-
 
         $packets = null;
         try {
-            $packets = $this->multiplayer_service->join_room($session, $dest_player);
-            if(!$packets) {
+            try {
+                $packets = $this->multiplayer_service->join_room($session, $dest_player);
+            } catch(\Throwable $e) {
                 $session->send($this->packet_service->server_error('room is locked'));
-                return; 
+                return;
             }
 
         } catch (\Throwable $e) {
@@ -67,8 +68,10 @@ class EnterRoomController extends AbstractPacketController
             $this->multiplayer_service->get_floor($dest_player->get_player_id())
         ));
 
-        foreach($packets as $p) {
-            $session->send($p);
+        if($packets != null) {
+            foreach($packets as $p) {
+                $session->send($p);
+            }
         }
     }
 }

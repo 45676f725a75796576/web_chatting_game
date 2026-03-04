@@ -5,12 +5,14 @@ namespace App\Controller;
 use App\Entity\Session;
 use App\Service\MultiplayerService;
 use App\Service\PacketService;
+use Psr\Log\LoggerInterface;
 
 class ChatController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
         private PacketService $packet_service,
+        private LoggerInterface $logger,
     ) {}
 
     public function supports(string $type): bool

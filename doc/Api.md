@@ -84,6 +84,7 @@ in the multiplayer session the client can send movement commands at any time and
     "state": "success",
     "identifier_str":<a unique string identifying this user>,
     "player_id": <id of the player>,
+    "room_id": <room id>,
     "img": <url to the player skin>
 }
 ```
@@ -92,7 +93,8 @@ in the multiplayer session the client can send movement commands at any time and
 ```
 {
     "type": "login",
-    "username": <username>
+    "username": <username>,
+    "room_id": <room id>,
     "identifier_str": <identifier string>
 }
 ```
@@ -121,6 +123,7 @@ in the multiplayer session the client can send movement commands at any time and
     "state": "success",
     "img": <url to the room image>,
     "room_id": <id of the room>,
+    "username": <owner>
     "floor": <the floor this room is at>
 }
 ```
@@ -133,10 +136,11 @@ in the multiplayer session the client can send movement commands at any time and
     "img": <url to the floor image>,
     "floor_id": <id of the floor>,
     "rooms": [
-        <room id>,
-        <room id>,
-        <room id>,
-        <room id>,
+        [<room id>, <username>],
+        [<room id>, <username>],
+        [<room id>, <username>],
+        [<room id>, <username>],
+        [<room id>, <username>],
     ]
 }
 ```
@@ -148,7 +152,8 @@ in the multiplayer session the client can send movement commands at any time and
     "pos": {
         "x": <x position>,
         "y": <y position>
-    }
+    },
+    "flip": <bool value>
 }
 ```
 
@@ -160,7 +165,8 @@ in the multiplayer session the client can send movement commands at any time and
     "pos": {
         "x": <x position>,
         "y": <y position>
-    }
+    },
+    "flip": <bool value>
 }
 ```
 

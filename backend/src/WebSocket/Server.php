@@ -10,7 +10,7 @@ use Ratchet\ConnectionInterface;
 class Server implements MessageComponentInterface
 {
     private \SplObjectStorage $clients;
-    private array $sessions = [];
+    public array $sessions = [];
 
     public function __construct(
         private PacketDispatcher $dispatcher
@@ -53,7 +53,7 @@ class Server implements MessageComponentInterface
             ($session->on_disconnect)();
         }
         
-        unset($sessions[$conn->resourceId]);
+        unset($this->sessions[$conn->resourceId]);
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e): void

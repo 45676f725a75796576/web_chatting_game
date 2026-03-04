@@ -31,6 +31,15 @@ class PlayerRepository extends ServiceEntityRepository
             ->getOneOrNullResult(); 
     }
     
+    public function find_by_username(string $username): ?Player 
+    {
+         return $this->createQueryBuilder('p')
+            ->andWhere('p.username = :username')
+            ->setParameter('username', $username)
+            ->getQuery()
+            ->getOneOrNullResult(); 
+    }
+    
     private function generate_unique_identifier(): string
     {
         $letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';

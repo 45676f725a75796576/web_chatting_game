@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Session;
 use App\Service\AuthService;
 use App\Service\AssetService;
+use App\Service\MultiplayerService;
 use App\Service\PacketService;
 use Psr\Log\LoggerInterface;
 
@@ -14,6 +15,7 @@ class LoginController extends AbstractPacketController
         private AuthService $auth_service,
         private AssetService $asset_service,
         private PacketService $packet_service,
+        private MultiplayerService $multiplayer_service,
         private LoggerInterface $logger
     ) {}
 
@@ -35,21 +37,14 @@ class LoginController extends AbstractPacketController
         try {
             $player = $this->auth_service->login($session, $username, $identifier_str);
         } catch (\Throwable $e) {
-            $this->logger->error('Exception occurred', [
-                'exception' => $e->getMessage(),
-            ]);
-            $session->send($this->packet_service->server_error('failed to login'));
+            $session->send($this->packet_service->server_error($e->getMessage()));
             return;
         }
         
-        if(!$player) {
-            $session->send($this->packet_service->server_error('invalid username or password'));
-            return;
-        }
-
         $this->send($session, $this->packet_service->server_login(
             $player->get_username(),
             $player->get_player_id(),
+            $this->multiplayer_service->get_player_room($player),
             $player->get_img() ?? $this->asset_service->get_player_default()
         ));
     }

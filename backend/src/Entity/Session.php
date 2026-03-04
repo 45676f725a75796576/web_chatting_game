@@ -17,4 +17,9 @@ class Session
     {
         $this->conn->send(json_encode($packet)."\n");
     }
+    
+    public function disconnect(): void
+    {
+        $this->conn->close();
+    }
 }

@@ -27,6 +27,10 @@ class Player
     
     #[ORM\Column(name: 'locked', type: "boolean")]
     private bool $locked = false;
+    
+    #[ORM\Column(name: 'admin', type: "boolean")]
+    private bool $admin = false;
+
 
     public function get_player_id(): int
     {
@@ -44,7 +48,7 @@ class Player
         return $this;
     }
 
-    public function get_lcoked(): bool
+    public function get_locked(): bool
     {
         return $this->locked;
     }
@@ -85,5 +89,15 @@ class Player
     public function set_locked(bool $locked)
     {
         $this->locked = $locked;
+    }
+
+    public function get_admin()
+    {
+        return $this->admin;
+    }
+    
+    public function set_admin(bool $admin)
+    {
+        $this->admin = $admin;
     }
 }
