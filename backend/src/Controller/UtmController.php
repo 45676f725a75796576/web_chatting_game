@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Session;
 use App\Repository\UtmRepository;
 
-class SkinController extends AbstractPacketController
+class UtmController extends AbstractPacketController
 {
     public function __construct(
         private UtmRepository $utm_repository,
@@ -22,7 +22,12 @@ class SkinController extends AbstractPacketController
         $utm_medium = $packet['utm_source'];
         $utm_campaign = $packet['utm_campaign'];
 
-        $this->utm_repository->insert_utm($utm_source,
+        if(!$utm_source || !$utm_medium || !$utm_campaign) {
+            return;
+        }
+
+        $this->utm_repository->insert_utm(
+            $utm_source,
             $utm_medium,
             $utm_campaign
         );
