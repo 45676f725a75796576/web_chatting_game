@@ -4,13 +4,15 @@ namespace App\Controller;
 
 use App\Entity\Session;
 use App\Service\AssetService;
+use App\Service\PacketService;
 use App\Service\AuthService;
 
 class SignInController extends AbstractPacketController
 {
     public function __construct(
         private AuthService $auth_service,
-        private AssetService $asset_service
+        private AssetService $asset_service,
+        private PacketService $packet_service
     ) {}
 
     public function supports(string $type): bool
@@ -23,11 +25,7 @@ class SignInController extends AbstractPacketController
         $username = $packet['username'] ?? null;
 
         if(!$username) {
-            $this->send($session, [
-                'type' => 'server_sign_in',
-                'state' => 'error',
-                'message' => 'missing username',
-            ]);
+            $session->send($this->packet_service->server_error('missing username'));
             return;
         }
 
@@ -35,21 +33,15 @@ class SignInController extends AbstractPacketController
         try {
             $player = $this->auth_service->signin($session, $username);
         } catch (\Throwable $e) {
-            $this->send($session, [
-                'type' => 'server_sign_in',
-                'state' => 'error',
-                'message' => $e->getMessage(),
-            ]);
+            $session->send($this->packet_service->server_error('failed to sign in'));
             return;
         }
 
-        $this->send($session, [
-            'type' => 'server_sign_in',
-            'state' => 'success',
-            'identifier_str' => $player->get_identifier_str(),
-            'player_id' => $player->get_player_id(),
-            'img' => $player->get_img() ?? $this->asset_service->get_player_default()
-        ]);
+        $session->send($this->packet_service->server_sign_in(
+            $player->get_identifier_str(),
+            $player->get_player_id(),
+            $player->get_img() ?? $this->asset_service->get_player_default(),
+        ));
     }
 
     function random_letters(int $length): string

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Session;
 use App\Repository\PlayerRepository;
+use App\Repository\PacketService;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 
@@ -12,7 +13,8 @@ class SkinController extends AbstractPacketController
     public function __construct(
         private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
-        private AssetService $asset_service
+        private AssetService $asset_service,
+        private PacketService $packet_service
     ) {}
 
     public function supports(string $type): bool
@@ -24,11 +26,7 @@ class SkinController extends AbstractPacketController
     {
         if(!$session->data->player)
         {
-            $session->send([
-                'type' => 'server_skin',
-                'state' =>'error',
-                'message' => 'user is not authenticated'
-            ]);
+            $session->send($this->packet_service->server_error('user is not authenticated'));
             return;
         }
 
@@ -36,10 +34,7 @@ class SkinController extends AbstractPacketController
 
         $res_packet = $this->multiplayer_service->change_player_skin($session, $url);
 
-        $session->send([
-            'type' => 'server_skin',
-            'state' =>'success',
-        ]);
+        $session->send($this->packet_service->server_success());
         
         if($res_packet) {
             $session->send($res_packet);

@@ -6,12 +6,14 @@ use App\Entity\Session;
 use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
+use App\Service\PacketService;
 
 class ChatController extends AbstractPacketController
 {
     public function __construct(
         private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
+        private PacketService $packet_service,
     ) {}
 
     public function supports(string $type): bool
@@ -23,21 +25,13 @@ class ChatController extends AbstractPacketController
     {
         if(!$session->data->player)
         {
-            $session->send([
-                'type' => 'server_chat',
-                'state' =>'error',
-                'message' => 'user is not authenticated'
-            ]);
+            $session->send($this->packet_service->server_error('user is not authenticated'));
             return;
         }
 
         $message = $packet['message'];
         if(!$message) {
-            $session->send([
-                'type' => 'server_chat',
-                'state' =>'error',
-                'message' => 'missing message field'
-            ]);
+            $session->send($this->packet_service->server_error('missing message field'));
             return;
         }
 
