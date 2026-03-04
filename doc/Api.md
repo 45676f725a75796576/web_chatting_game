@@ -316,3 +316,11 @@ in the multiplayer session the client can send movement commands at any time and
     "url": <skin url>
 }
 ```
+
+### room_lock
+```
+{
+    "type":"room_lock",
+    "lock": <true or false>
+}
+```
