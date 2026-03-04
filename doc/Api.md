@@ -25,6 +25,11 @@ The user disconnects when the WebSocket closes. On disconnect the server sends a
 2. server responds with a "server_room" packet
 3. the [multiplayer session](#multiplayer-session) starts
 
+### utm analytics
+1. client gets utm parameters and sends "utm" packet
+2. client should store a cookie that utm was sent
+3. server responds with "server_utm"
+
 ## multiplayer session
 in the multiplayer session the client can send movement commands at any time and the server can send player updates at any time
 
@@ -322,5 +327,22 @@ in the multiplayer session the client can send movement commands at any time and
 {
     "type":"room_lock",
     "lock": <true or false>
+```
+
+### utm
+```
+{
+    "type": "utm",
+    "utm_source": <utm source>,
+    "utm_campaign": <utm campaign>,
+    "utm_medium": <utm medium>,
+}
+```
+
+### server_utm
+```
+{
+    "type": "server_utm",
+    "state": "success"
 }
 ```

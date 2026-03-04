@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class MultiplayerService
 {
-    private int $room_count = 5;
+    private int $room_count = 3;
     private array $rooms = [];
     private array $floors = [];
 
