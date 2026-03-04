@@ -6,14 +6,15 @@ use App\Entity\Session;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 use App\Service\PacketService;
-
+use Psr\Log\LoggerInterface;
 
 class EnterFloorController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
         private AssetService $asset_service,
-        private PacketService $packet_service
+        private PacketService $packet_service,
+        private LoggerInterface $logger,
     ) {}
 
     public function supports(string $type): bool
@@ -42,6 +43,9 @@ class EnterFloorController extends AbstractPacketController
         try {
             $packets = $this->multiplayer_service->join_floor($session, $floor_id);
         } catch (\Throwable $e) {
+            $this->logger->error('Exception occurred', [
+                'exception' => $e->getMessage(),
+            ]);
             $session->send($this->packet_service->server_error('failed to join floor'));
             return;
         }

@@ -6,13 +6,15 @@ use App\Entity\Session;
 use App\Service\AssetService;
 use App\Service\PacketService;
 use App\Service\AuthService;
+use Psr\Log\LoggerInterface;
 
 class SignInController extends AbstractPacketController
 {
     public function __construct(
         private AuthService $auth_service,
         private AssetService $asset_service,
-        private PacketService $packet_service
+        private PacketService $packet_service,
+        private LoggerInterface $logger
     ) {}
 
     public function supports(string $type): bool
@@ -33,6 +35,9 @@ class SignInController extends AbstractPacketController
         try {
             $player = $this->auth_service->signin($session, $username);
         } catch (\Throwable $e) {
+            $this->logger->error('Exception occurred', [
+                'exception' => $e->getMessage(),
+            ]);
             $session->send($this->packet_service->server_error('failed to sign in'));
             return;
         }

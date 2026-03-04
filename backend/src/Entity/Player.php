@@ -10,20 +10,23 @@ class Player
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
+    #[ORM\Column(name: 'player_id', type: "integer")]
     private int $player_id;
 
-    #[ORM\Column(type: "string", length: 255, unique: true)]
+    #[ORM\Column(name: 'identifier_str', type: "string", length: 255, unique: true)]
     private string $identifier_str;
 
-    #[ORM\Column(type: "string", length: 100)]
+    #[ORM\Column(name: 'username', type: "string", length: 100)]
     private string $username;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(name: 'img', type: "string", length: 255, nullable: true)]
     private ?string $img = null;
     
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(name: 'room_img', type: "string", length: 255, nullable: true)]
     private ?string $room_img = null;
+    
+    #[ORM\Column(name: 'locked', type: "boolean")]
+    private bool $locked = false;
 
     public function get_player_id(): int
     {
@@ -39,6 +42,11 @@ class Player
     {
         $this->identifier_str = $identifier_str;
         return $this;
+    }
+
+    public function get_lcoked(): bool
+    {
+        return $this->locked;
     }
 
     public function get_username(): string

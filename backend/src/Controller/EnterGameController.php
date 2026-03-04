@@ -6,13 +6,15 @@ use App\Entity\Session;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 use App\Service\PacketService;
+use Psr\Log\LoggerInterface;
 
 class EnterGameController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
         private AssetService $asset_service,
-        private PacketService $packet_service
+        private PacketService $packet_service,
+        private LoggerInterface $logger
     ) {}
 
     public function supports(string $type): bool
@@ -34,14 +36,13 @@ class EnterGameController extends AbstractPacketController
             $player = $session->data->player;
             $packets = $this->multiplayer_service->join_room($session, $player);
             if($packets == null) {
-                $this->send($session, [
-                    'type' => 'server_room',
-                    'state' => 'error',
-                    'message' => 'room is locked',
-                ]);
+                $session->send($this->packet_service->server_error('room is locked'));
                 return;
             }
         } catch (\Throwable $e) {
+            $this->logger->error('Exception occurred', [
+                'exception' => $e->getMessage(),
+            ]);
             $session->send($this->packet_service->server_error('failed to join the room'));
             return;
         }

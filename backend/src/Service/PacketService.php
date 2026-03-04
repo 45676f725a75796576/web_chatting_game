@@ -15,11 +15,12 @@ class PacketService
     }
     
 
-    public function server_login(int $player_id, string $img_url): array {
+    public function server_login(string $username, int $player_id, string $img_url): array {
         return [
             'type' => 'server_login',
             'state' => 'success',
             'player_id' => $player_id,
+            'username' => $username,
             'img' => $img_url
         ];
     }

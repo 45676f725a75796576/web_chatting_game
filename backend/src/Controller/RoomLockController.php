@@ -10,7 +10,7 @@ use Doctrine\ORM\EntityManagerInterface;
 class RoomLockController extends AbstractPacketController
 {
     public function __construct(
-        private MultiplayerService $multiplayer_service,
+        private PacketService $packet_service,
         private EntityManagerInterface $em,
     ) {}
 
@@ -23,21 +23,13 @@ class RoomLockController extends AbstractPacketController
     {
         if(!$session->data->player)
         {
-            $session->send([
-                'type' => 'server_error',
-                'state' => 'error',
-                'message' => 'player is not authenticated'
-            ]);
+            $session->send($this->packet_service->server_error('player is not authenticated'));
             return;
         }
 
         $lock = $packet['lock'];
         if(!$lock) {
-            $session->send([
-                'type' => 'server_error',
-                'state' => 'error',
-                'message' => 'lock is missing'
-            ]);
+            $session->send($this->packet_service->server_error('lock is missing'));
             return;
         }
 

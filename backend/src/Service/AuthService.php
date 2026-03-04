@@ -14,14 +14,14 @@ class AuthService
 
     public function login(Session $session, string $username, string $identifier_str): ?Player
     {
-        $player = $this->player_repository->findByUsernameAndIdentifier($username, $identifier_str);
+        $player = $this->player_repository->find_by_username_and_identifier($username, $identifier_str);
         $session->data->player = $player;
         return $player;
     }
 
     public function signin(Session $session, string $username, ?string $img = null): ?Player
     {
-        $player = $this->player_repository->insertPlayer($username, $img);
+        $player = $this->player_repository->insert_player($username, $img);
         $session->data->player = $player;
         return $player;
     }

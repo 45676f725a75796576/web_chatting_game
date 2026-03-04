@@ -7,6 +7,7 @@ use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 use App\Service\PacketService;
+use Psr\Log\LoggerInterface;
 
 class EnterRoomController extends AbstractPacketController
 {
@@ -14,7 +15,8 @@ class EnterRoomController extends AbstractPacketController
         private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
         private AssetService $asset_service,
-        private PacketService $packet_service
+        private PacketService $packet_service,
+        private LoggerInterface $logger
     ) {}
 
     public function supports(string $type): bool
@@ -47,15 +49,14 @@ class EnterRoomController extends AbstractPacketController
         try {
             $packets = $this->multiplayer_service->join_room($session, $dest_player);
             if(!$packets) {
-                $this->send($session, [
-                    'type' => 'server_room',
-                    'state' => 'error',
-                    'message' => 'room is locked',
-                ]);
+                $session->send($this->packet_service->server_error('room is locked'));
                 return; 
             }
 
         } catch (\Throwable $e) {
+            $this->logger->error('Exception occurred', [
+                'exception' => $e->getMessage(),
+            ]);
             $session->send($this->packet_service->server_error('failed to join the room'));
             return;
         }

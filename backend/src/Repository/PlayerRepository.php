@@ -24,7 +24,7 @@ class PlayerRepository extends ServiceEntityRepository
     {
          return $this->createQueryBuilder('p')
             ->andWhere('p.username = :username')
-            ->andWhere('p.identifierStr = :identifier')
+            ->andWhere('p.identifier_str = :identifier')
             ->setParameter('username', $username)
             ->setParameter('identifier', $identifier)
             ->getQuery()
@@ -39,10 +39,10 @@ class PlayerRepository extends ServiceEntityRepository
         do {
             $identifier = '';
             for ($i = 0; $i < 5; $i++) {
-                $identifier .= $letters[random_int(0, 52)];
+                $identifier .= $letters[random_int(0, 51)];
             }
 
-            $existing = $this->findOneBy(['identifierStr' => $identifier]);
+            $existing = $this->findOneBy(['identifier_str' => $identifier]);
         } while ($existing !== null);
 
         return $identifier;
@@ -50,11 +50,11 @@ class PlayerRepository extends ServiceEntityRepository
 
     public function insert_player(string $username, ?string $img = null): Player
     {
-        $entityManager = $this->get_entity_manager();
+        $entityManager = $this->getEntityManager();
 
-        $existing = $this->find_one_by(['username' => $username]);
+        $existing = $this->findOneBy(['username' => $username]);
         if ($existing) {
-            throw new \Exception("Username '$username' already exists.");
+            throw new \Exception("username '$username' already exists.");
         }
 
         $player = new Player();

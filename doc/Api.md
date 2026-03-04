@@ -263,6 +263,7 @@ in the multiplayer session the client can send movement commands at any time and
     "type": "server_error",
     "state": "error",
     "message": <error message>
+}
 ```
 
 ### room_lock
@@ -270,6 +271,7 @@ in the multiplayer session the client can send movement commands at any time and
 {
     "type":"room_lock",
     "lock": <true or false>
+}
 ```
 
 ### utm
