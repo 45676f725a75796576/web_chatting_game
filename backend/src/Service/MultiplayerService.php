@@ -5,8 +5,10 @@ namespace App\Service;
 use App\Entity\Player;
 use App\Entity\Session;
 use App\Service\AssetService;
+use App\WebSocket\Server;
 use App\Repository\PlayerRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class MultiplayerService
 {
@@ -17,8 +19,94 @@ class MultiplayerService
     public function __construct(
         private AssetService $asset_service,
         private PlayerRepository $player_repository,
+        private PacketService $packet_service,
         private EntityManagerInterface $em,
+        private LoggerInterface $logger,
+        private Server $server,
     ) {}
+    
+    function uuidv4(): string
+    {
+        $data = random_bytes(16);
+
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+    }
+
+    private function ban(string $username) {
+        $player = $this->player_repository->find_by_username($username);
+
+        $this->logger->warning("x");
+        if (!$player) {
+            $this->logger->warning("attempted to ban nonexistent player: $username");
+            return;
+        }
+
+        $this->logger->warning("xx");
+        $player->set_img(null);
+        $player->set_room_img(null);
+
+        $stop = false;
+        while(!$stop) {
+            try {
+                $player->set_identifier_str($this->uuidv4());
+                $stop = true;
+            } catch(\Throwable $e) {
+                $stop = false;
+            }
+        }
+        $this->em->flush();
+
+        $this->kick($username);
+
+        $this->logger->info("player $username (id {$player->get_player_id()}) was banned");
+    }
+
+    private function reset(string $username) {
+        $player = $this->player_repository->find_by_username($username);
+
+        if (!$player) {
+            $this->logger->warning("attempted to reset nonexistent player: $username");
+            return;
+        }
+
+        $player_id = $player->get_player_id();
+
+        $player->set_img(null);
+        $player->set_room_img(null);
+        $this->em->flush();
+
+        $this->kick($username);
+        
+        $this->logger->info("player $username (id $player_id) was reset");
+    }
+
+    private function kick(string $username) {
+        $player = $this->player_repository->find_by_username($username);
+
+        if (!$player) {
+            $this->logger->warning("attempted to kick nonexistent player: $username");
+            return;
+        }
+
+        $player_id = $player->get_player_id();
+
+        foreach($this->server->sessions as $s) {
+            if($s->data->player != null
+            && $s->data->player->get_player_id() == $player_id) {
+                if($s->on_disconnect != null) {
+                    ($s->on_disconnect)();
+                }
+
+                $s->disconnect();
+            }
+        }
+
+        $this->logger->info("player $username (id $player_id) was kicked.");
+    }
 
     private function add_session_to_collection(array &$collection, $key, Session $session)
     {
@@ -39,10 +127,7 @@ class MultiplayerService
             }
 
             foreach ($collection[$key] as $s) {
-                $s->send([
-                    'type' => 'server_disconnect',
-                    'player_id' => $player_id
-                ]);
+                $s->send($this->packet_service->server_disconnect($player_id));
             }
         };
 
@@ -50,26 +135,22 @@ class MultiplayerService
         foreach ($collection[$key] as $s) {
             
             if($s != $session) {
-                $s->send([
-                    'type' => 'server_new_player',
-                    'player_id' => $session->data->player->get_player_id(),
-                    'username' => $session->data->player->get_username(),
-                    'img' => $session->data->player->get_img() ?? $this->asset_service->get_player_default(),
-                    'pos' => [
-                        'x' => $session->data->x,
-                        'y' => $session->data->y,
-                    ]
-                ]);
-                array_push($packets, [
-                    'type' => 'server_new_player',
-                    'player_id' => $s->data->player->getPlayerId(),
-                    'username' => $s->data->player->getUsername(),
-                    'img' => $s->data->player->get_img() ?? $this->asset_service->get_player_default(),
-                    'pos' => [
-                        'x' => $s->data->x,
-                        'y' => $s->data->y,
-                    ]
-                ]);
+                $s->send($this->packet_service->server_new_player(
+                    $session->data->player->get_player_id(),
+                    $session->data->player->get_username(),
+                    $session->data->player->get_img() ?? $this->asset_service->get_player_default(),
+                    $session->data->x,
+                    $session->data->y,
+                ));
+
+                array_push($packets, $this->packet_service->server_new_player(
+                    $s->data->player->get_player_id(),
+                    $s->data->player->get_username(),
+                    $s->data->player->get_img() ?? $this->asset_service->get_player_default(),
+                    $s->data->x,
+                    $s->data->y,
+                ));
+
             }
         }
 
@@ -77,14 +158,16 @@ class MultiplayerService
         return $packets;
     }
 
-    public function join_room(Session $session, Player $player): ?array
+    public function join_room(Session $session, Player $player): array
     {
         if (!$session->data->player) {
             throw new \Exception("unauthenticated player");
         }
 
-        if($player->get_locked()) {
-            return null;
+        if($player->get_player_id() != $session->data->player->get_player_id() && !$session->data->player->get_admin()) {
+            if($player->get_locked()) {
+                throw new \Exception("room is locked");
+            }
         }
 
         $session->data->room = $this->get_player_room($player);
@@ -92,7 +175,7 @@ class MultiplayerService
 
         $session->data->x = 0;
         $session->data->y = 0;
-        return $this->add_session_to_collection($this->rooms, $player->get_player_id(), $session);
+        return $this->add_session_to_collection($this->rooms, $this->get_player_room($player), $session);
     }
 
     public function join_floor(Session $session, int $floor_id): ?array
@@ -109,16 +192,16 @@ class MultiplayerService
         return $this->add_session_to_collection($this->floors, $floor_id, $session);
     }
 
-    public function update_player_pos(Session $session, int $x, int $y)
+    public function update_player_pos(Session $session, int $x, int $y, $flip)
     {
         if (!$session->data->player) {
             throw new \Exception("unauthenticated player");
         }
 
         if ($session->data->room !== null) {
-            $this->change_player_pos_in_collection($this->rooms, $session->data->room, $session, $x, $y);
+            $this->change_player_pos_in_collection($this->rooms, $session->data->room, $session, $x, $y, $flip);
         } elseif ($session->data->floor !== null) {
-            $this->change_player_pos_in_collection($this->floors, $session->data->floor, $session, $x, $y);
+            $this->change_player_pos_in_collection($this->floors, $session->data->floor, $session, $x, $y, $flip);
         }
 
         $session->data->x = $x;
@@ -140,17 +223,15 @@ class MultiplayerService
             foreach($this->rooms as $rooms) {
                 foreach($rooms as $s) {
                     if($s != $session) {
-                        $s->send([
-                            'type' => 'server_skin_update',
-                            'player_id' => $session->data->player->get_player_id(),
-                            'url' => $session->data->player->get_img(),
-                        ]);
+                        $s->send($this->packet_service->server_skin_update(
+                            $session->data->player->get_player_id(),
+                            $session->data->player->get_img(),
+                        ));
                     } else {
-                        $packet = [
-                            'type' => 'server_skin_update',
-                            'player_id' => $session->data->player->get_player_id(),
-                            'url' => $session->data->player->get_img(),
-                        ];
+                        $packet = $this->packet_service->server_skin_update(
+                            $session->data->player->get_player_id(),
+                            $session->data->player->get_img(),
+                        );
                     }
                 }
             }
@@ -159,18 +240,16 @@ class MultiplayerService
                 foreach($floors as $s) {
                     if($s != $session) {
                         if($s != $session) {
-                            $s->send([
-                                'type' => 'server_skin_update',
-                                'player_id' => $session->data->player->get_player_id(),
-                                'url' => $session->data->player->get_img(),
-                            ]);
+                            $s->send($this->packet_service->server_skin_update(
+                                $session->data->player->get_player_id(),
+                                $session->data->player->get_img(),
+                            ));
                         }
                     } else {
-                        $packet = [
-                            'type' => 'server_skin_update',
-                            'player_id' => $session->data->player->get_player_id(),
-                            'url' => $session->data->player->get_img(),
-                        ];
+                        $packet = $this->packet_service->server_skin_update(
+                            $session->data->player->get_player_id(),
+                            $session->data->player->get_img(),
+                        );
                     }
                 }
             }
@@ -184,7 +263,7 @@ class MultiplayerService
         if (!$session->data->player) {
             throw new \Exception("unauthenticated player");
         }
-    
+
         $player = $session->data->player;
         $player->set_room_img($url);
     
@@ -196,10 +275,9 @@ class MultiplayerService
         if (!empty($this->rooms[$room_id])) {
             foreach ($this->rooms[$room_id] as $s) {
     
-                $data = [
-                    'type' => 'server_room_skin_update',
-                    'url' => $player->get_room_img(),
-                ];
+                $data = $this->packet_service->server_room_skin_update(
+                    $player->get_room_img(),
+                );
     
                 if ($s !== $session) {
                     $s->send($data);
@@ -218,16 +296,47 @@ class MultiplayerService
             throw new \Exception("unauthenticated player");
         }
 
+        $this->logger->info("a");
+        if($session->data->player->get_admin()) {
+            if($message[0] == '/') {
+                $exploded = explode(" ", $message);
+
+                $this->logger->info("abc");
+                switch($exploded[0]) {
+                    case "/kick":
+                        if(count($exploded) == 2) {
+                            $this->logger->info("kik");
+                            $this->kick($exploded[1]); 
+                            return [];
+                        }
+                        break;
+                    case "/ban":
+                        if(count($exploded) == 2) {
+                            $this->ban($exploded[1]); 
+                            return [];
+                        }
+                        break;
+                    case "/reset":
+                        if(count($exploded) == 2) {
+                            $this->reset($exploded[1]); 
+                            return [];
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            }                
+        }
+
         if ($session->data->room !== null) {
             foreach($this->rooms as $rooms) {
                 foreach($rooms as $s) {
                     if($s != $session) {
-                        $s->send([
-                            'type' => 'server_chat',
-                            'player_id' => $session->data->player->get_player_id(),
-                            'message' => $message,
-                            'timeout' => 10,
-                        ]);
+                        $s->send($this->packet_service->server_chat(
+                            $session->data->player->get_player_id(),
+                            $message,
+                            10
+                        ));
                     }
                 }
             }
@@ -235,26 +344,24 @@ class MultiplayerService
             foreach($this->floors as $floors) {
                 foreach($floors as $s) {
                     if($s != $session) {
-                        $s->send([
-                            'type' => 'server_chat',
-                            'player_id' => $session->data->player->get_player_id(),
-                            'message' => $message,
-                            'timeout' => 10,
-                        ]);
+                        $s->send($this->packet_service->server_chat(
+                            $session->data->player->get_player_id(),
+                            $message,
+                            10
+                        ));
                     }
                 }
             }
         }
 
-        return ([
-            'type' => 'server_chat',
-            'player_id' => $session->data->player->get_player_id(),
-            'message' => $message,
-            'timeout' => 10,
-        ]);
+        return $this->packet_service->server_chat(
+            $session->data->player->get_player_id(),
+            $message,
+            10
+        );
     }
 
-    private function change_player_pos_in_collection(array &$collection, $key, Session $session, int $x, int $y)
+    private function change_player_pos_in_collection(array &$collection, $key, Session $session, int $x, int $y, $flip)
     {
         if (!isset($collection[$key])) {
             return;
@@ -262,26 +369,28 @@ class MultiplayerService
 
         foreach ($collection[$key] as $s) {
             if ($s !== $session) {
-                $s->send([
-                    'type' => 'server_player_pos',
-                    'player_id' => $session->data->player->get_player_id(),
-                    'pos' => [
-                        'x' => $x,
-                        'y' => $y,
-                    ]
-                ]);
+                $s->send($this->packet_service->server_player_pos(
+                    $session->data->player->get_player_id(),
+                    $x,
+                    $y,
+                    $flip
+                ));
             }
         }
     }
 
     public function get_player_room(Player $player): int
     {
-        return $player->getPlayerId();
+        return $player->get_player_id();
     }
     
-    public function get_room_by_player(int $room_id): ?Player
+    public function get_room_by_player(int $room_id): Player
     {
-        return $this->player_repository->findById($room_id);
+        $player = $this->player_repository->find_by_id($room_id);
+        if(!$player) {
+            throw new \Exception("player not found");
+        }
+        return $player;
     }
 
     public function get_floor(int $room_id) 
@@ -293,8 +402,8 @@ class MultiplayerService
     {
         $floor_rooms = [];
         for($i = 1; $i < $this->room_count + 1; $i++) {
-            $id = $i + $floor_id;
-            $player = $this->player_repository->findById($id);
+            $id = $i + ($floor_id * 3);
+            $player = $this->player_repository->find_by_id($id);
             if($player != null) {
                 array_push($floor_rooms, (string)$this->get_player_room($player));
             }

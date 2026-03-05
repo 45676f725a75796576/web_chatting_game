@@ -3,17 +3,20 @@
 namespace App\Controller;
 
 use App\Entity\Session;
+use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 use App\Service\PacketService;
-
+use Psr\Log\LoggerInterface;
 
 class EnterFloorController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
+        private PlayerRepository $player_repository,
         private AssetService $asset_service,
-        private PacketService $packet_service
+        private PacketService $packet_service,
+        private LoggerInterface $logger,
     ) {}
 
     public function supports(string $type): bool
@@ -23,6 +26,9 @@ class EnterFloorController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+        ]);
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('user is not authenticated'));
@@ -42,14 +48,28 @@ class EnterFloorController extends AbstractPacketController
         try {
             $packets = $this->multiplayer_service->join_floor($session, $floor_id);
         } catch (\Throwable $e) {
+            $this->logger->error('Exception occurred', [
+                'exception' => $e->getMessage(),
+            ]);
             $session->send($this->packet_service->server_error('failed to join floor'));
             return;
         }
-            
+        
+        $rooms = [];
+        $room_ids = $this->multiplayer_service->get_rooms($floor_id);
+        foreach($room_ids as $id) {
+            $player = $this->multiplayer_service->get_room_by_player($id);
+            if($player == null) {
+                $session->send($this->packet_service->server_error('failed to join floor'));
+                return;
+            }
+            array_push($rooms, [$id ,$player->get_username()]);
+        }
+
         $session->send($this->packet_service->server_floor(
             $this->asset_service->get_floor(),
             $floor_id,
-            $this->multiplayer_service->get_rooms($floor_id)
+            $rooms
         ));
 
         foreach($packets as $p) {

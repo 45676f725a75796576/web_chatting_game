@@ -5,12 +5,14 @@ namespace App\Controller;
 use App\Entity\Session;
 use App\Service\MultiplayerService;
 use App\Service\PacketService;
+use Psr\Log\LoggerInterface;
 
 class RoomSkinController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
         private PacketService $packet_service,
+        private LoggerInterface $logger,
     ) {}
 
     public function supports(string $type): bool
@@ -20,6 +22,9 @@ class RoomSkinController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+        ]);
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('user is not authenticated'));

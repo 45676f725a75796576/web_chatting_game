@@ -6,13 +6,15 @@ use App\Entity\Session;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 use App\Service\PacketService;
+use Psr\Log\LoggerInterface;
 
 class EnterGameController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
         private AssetService $asset_service,
-        private PacketService $packet_service
+        private PacketService $packet_service,
+        private LoggerInterface $logger
     ) {}
 
     public function supports(string $type): bool
@@ -22,33 +24,29 @@ class EnterGameController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+            'session' => $session,
+        ]);
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('user is not authenticated'));
             return;
         }
 
-        $player = null;
         $packets = null;
+        $player = $session->data->player;
         try {
-            $player = $session->data->player;
             $packets = $this->multiplayer_service->join_room($session, $player);
-            if($packets == null) {
-                $this->send($session, [
-                    'type' => 'server_room',
-                    'state' => 'error',
-                    'message' => 'room is locked',
-                ]);
-                return;
-            }
-        } catch (\Throwable $e) {
-            $session->send($this->packet_service->server_error('failed to join the room'));
+        } catch(\Throwable $e) {
+            $session->send($this->packet_service->server_error('room is locked'));
             return;
         }
 
         $session->send($this->packet_service->server_room(
             $player->get_room_img() ?? $this->asset_service->get_room_default(),
-            $player->get_player_id(),
+            $this->multiplayer_service->get_player_room($player),
+            $player->get_username(),
             $this->multiplayer_service->get_floor($player->get_player_id())
         ));
 

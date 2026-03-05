@@ -7,6 +7,7 @@ use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
 use App\Service\PacketService;
+use Psr\Log\LoggerInterface;
 
 class EnterRoomController extends AbstractPacketController
 {
@@ -14,7 +15,8 @@ class EnterRoomController extends AbstractPacketController
         private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
         private AssetService $asset_service,
-        private PacketService $packet_service
+        private PacketService $packet_service,
+        private LoggerInterface $logger
     ) {}
 
     public function supports(string $type): bool
@@ -24,6 +26,11 @@ class EnterRoomController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+            'session' => $session,
+        ]);
+
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('user is not authenticated'));
@@ -37,37 +44,31 @@ class EnterRoomController extends AbstractPacketController
             return;
         }
 
-        $dest_player = $this->player_repository->findById($room_id);
+        $dest_player = $this->player_repository->find_by_id($room_id);
         if(!$dest_player) {
             $session->send($this->packet_service->server_error('room not found'));
+            return;
         }
-
 
         $packets = null;
         try {
             $packets = $this->multiplayer_service->join_room($session, $dest_player);
-            if(!$packets) {
-                $this->send($session, [
-                    'type' => 'server_room',
-                    'state' => 'error',
-                    'message' => 'room is locked',
-                ]);
-                return; 
-            }
-
-        } catch (\Throwable $e) {
-            $session->send($this->packet_service->server_error('failed to join the room'));
+        } catch(\Throwable $e) {
+            $session->send($this->packet_service->server_error('room is locked'));
             return;
         }
 
         $session->send($this->packet_service->server_room(
             $dest_player->get_room_img() ?? $this->asset_service->get_room_default(),
             $dest_player->get_player_id(),
+            $dest_player->get_username(),
             $this->multiplayer_service->get_floor($dest_player->get_player_id())
         ));
 
-        foreach($packets as $p) {
-            $session->send($p);
+        if($packets != null) {
+            foreach($packets as $p) {
+                $session->send($p);
+            }
         }
     }
 }

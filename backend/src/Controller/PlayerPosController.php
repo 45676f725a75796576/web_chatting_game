@@ -3,14 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Session;
-use App\Repository\PlayerRepository;
 use App\Service\MultiplayerService;
-use App\Service\AssetService;
+use Psr\Log\LoggerInterface;
 
 class PlayerPosController extends AbstractPacketController
 {
     public function __construct(
         private MultiplayerService $multiplayer_service,
+        private LoggerInterface $logger,
     ) {}
 
     public function supports(string $type): bool
@@ -20,6 +20,10 @@ class PlayerPosController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+            'session' => $session,
+        ]);
         if(!$session->data->player)
         {
             return;
@@ -27,7 +31,8 @@ class PlayerPosController extends AbstractPacketController
 
         $x = $packet['pos']['x'];
         $y = $packet['pos']['y'];
+        $flip = $packet['flip'];
 
-        $this->multiplayer_service->update_player_pos($session, $x, $y);
+        $this->multiplayer_service->update_player_pos($session, $x, $y, $flip);
     }
 }
