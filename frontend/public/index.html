@@ -99,24 +99,6 @@
             <p class="modal-label">Skins:</p>
             <div class="skin-grid" id="skinGrid"></div>
 
-            <p class="modal-label" style="margin-top:16px;"> URL </p>
-            <div class="input-group">
-                <input type="text" id="skinUrlInput"
-                       placeholder="https://example.com/skin.png"
-                       oninput="game.previewSkin()" />
-            </div>
-
-            <div class="slider-row">
-                <label>Width: <span id="widthValue">3.0</span></label>
-                <input type="range" id="skinWidthSlider" min="0.1" max="10" step="0.1"
-                       value="3" oninput="game.updateSkinSize()" />
-            </div>
-            <div class="slider-row">
-                <label>Height: <span id="heightValue">4.5</span></label>
-                <input type="range" id="skinHeightSlider" min="0.1" max="10" step="0.1"
-                       value="3.5" oninput="game.updateSkinSize()" />
-            </div>
-
             <div class="modal-buttons">
                 <button class="btn" onclick="game.applySkin()">✅ Accept</button>
                 <button class="btn btn-secondary" onclick="game.closeSkinModal()">Cancel</button>
@@ -136,13 +118,6 @@
 
             <p class="modal-label">background:</p>
             <div class="skin-grid" id="roomSkinGrid"></div>
-
-            <p class="modal-label" style="margin-top:16px;"> URL :</p>
-            <div class="input-group">
-                <input type="text" id="roomSkinUrlInput"
-                       placeholder="https://example.com/background.jpg"
-                       oninput="game.previewRoomSkin()" />
-            </div>
 
             <p class="modal-hint">⚠️ The background will change for all players in the room</p>
 
