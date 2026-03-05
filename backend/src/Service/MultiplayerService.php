@@ -144,11 +144,11 @@ class MultiplayerService
                 ));
 
                 array_push($packets, $this->packet_service->server_new_player(
-                    $session->data->player->get_player_id(),
-                    $session->data->player->get_username(),
-                    $session->data->player->get_img() ?? $this->asset_service->get_player_default(),
-                    $session->data->x,
-                    $session->data->y,
+                    $s->data->player->get_player_id(),
+                    $s->data->player->get_username(),
+                    $s->data->player->get_img() ?? $this->asset_service->get_player_default(),
+                    $s->data->x,
+                    $s->data->y,
                 ));
 
             }
@@ -384,9 +384,13 @@ class MultiplayerService
         return $player->get_player_id();
     }
     
-    public function get_room_by_player(int $room_id): ?Player
+    public function get_room_by_player(int $room_id): Player
     {
-        return $this->player_repository->find_by_id($room_id);
+        $player = $this->player_repository->find_by_id($room_id);
+        if(!$player) {
+            throw new \Exception("player not found");
+        }
+        return $player;
     }
 
     public function get_floor(int $room_id) 

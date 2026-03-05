@@ -26,6 +26,9 @@ class LoginController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+        ]);
         $identifier_str = $packet['identifier_str'] ?? null;
         $username = $packet['username'] ?? null;
 

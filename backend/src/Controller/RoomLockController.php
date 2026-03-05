@@ -6,12 +6,14 @@ use App\Entity\Session;
 use App\Service\MultiplayerService;
 use App\Service\PacketService;
 use Doctrine\ORM\EntityManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class RoomLockController extends AbstractPacketController
 {
     public function __construct(
         private PacketService $packet_service,
         private EntityManagerInterface $em,
+        private LoggerInterface $logger,
     ) {}
 
     public function supports(string $type): bool
@@ -21,6 +23,9 @@ class RoomLockController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+        ]);
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('player is not authenticated'));

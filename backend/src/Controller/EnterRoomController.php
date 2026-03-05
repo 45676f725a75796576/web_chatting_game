@@ -26,6 +26,11 @@ class EnterRoomController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+            'session' => $session,
+        ]);
+
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('user is not authenticated'));
@@ -47,18 +52,9 @@ class EnterRoomController extends AbstractPacketController
 
         $packets = null;
         try {
-            try {
-                $packets = $this->multiplayer_service->join_room($session, $dest_player);
-            } catch(\Throwable $e) {
-                $session->send($this->packet_service->server_error('room is locked'));
-                return;
-            }
-
-        } catch (\Throwable $e) {
-            $this->logger->error('Exception occurred', [
-                'exception' => $e->getMessage(),
-            ]);
-            $session->send($this->packet_service->server_error('failed to join the room'));
+            $packets = $this->multiplayer_service->join_room($session, $dest_player);
+        } catch(\Throwable $e) {
+            $session->send($this->packet_service->server_error('room is locked'));
             return;
         }
 

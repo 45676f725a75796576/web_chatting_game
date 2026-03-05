@@ -22,6 +22,10 @@ class ChatController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+        ]);
+
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('user is not authenticated'));

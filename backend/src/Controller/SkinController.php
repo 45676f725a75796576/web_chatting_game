@@ -7,13 +7,13 @@ use App\Repository\PlayerRepository;
 use App\Service\PacketService;
 use App\Service\MultiplayerService;
 use App\Service\AssetService;
+use Psr\Log\LoggerInterface;
 
 class SkinController extends AbstractPacketController
 {
     public function __construct(
-        private PlayerRepository $player_repository,
         private MultiplayerService $multiplayer_service,
-        private AssetService $asset_service,
+        private LoggerInterface $logger,
         private PacketService $packet_service
     ) {}
 
@@ -24,6 +24,9 @@ class SkinController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+        ]);
         if(!$session->data->player)
         {
             $session->send($this->packet_service->server_error('user is not authenticated'));

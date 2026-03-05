@@ -26,6 +26,9 @@ class SignInController extends AbstractPacketController
 
     public function handle(Session $session, array $packet): void
     {
+        $this->logger->info('packet received', [
+            'packet' => $packet,
+        ]);
         $username = $packet['username'] ?? null;
 
         if(!$username) {
