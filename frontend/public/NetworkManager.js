@@ -4,13 +4,18 @@ class NetworkManager {
         this.reconnectAttempts = 0;
         this.testMode = false;
         this.messageHandlers = {};
+        this.intentionalClose = false; // ← новый флаг
     }
 
     connect() {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+        if (this.ws && (
+            this.ws.readyState === WebSocket.OPEN ||
+            this.ws.readyState === WebSocket.CONNECTING
+        )) {
             return;
         }
 
+        this.intentionalClose = false;
         this.ws = new WebSocket(CONFIG.WS_URL);
 
         this.ws.onopen = () => {
@@ -31,22 +36,28 @@ class NetworkManager {
             });
         };
 
-        this.ws.onclose = () => {
-            console.log('Disconnected from server');
+        this.ws.onclose = (event) => {
+            console.log('Disconnected from server, code:', event.code);
             this.updateConnectionStatus(false);
 
-            if (!this.testMode && this.reconnectAttempts < CONFIG.MAX_RECONNECT_ATTEMPTS) {
+            // Реконнект только если это не намеренное закрытие
+            if (!this.testMode && !this.intentionalClose && this.reconnectAttempts < CONFIG.MAX_RECONNECT_ATTEMPTS) {
                 this.reconnectAttempts++;
+                console.log(`Reconnecting... attempt ${this.reconnectAttempts}`);
                 setTimeout(() => this.connect(), CONFIG.RECONNECT_DELAY);
             }
         };
 
         this.ws.onerror = (error) => {
             console.error('WebSocket error:', error);
-            if (!this.testMode) {
-                authUI.showError('Connection error');
-            }
+            if (!this.testMode) authUI.showError('Connection error');
         };
+    }
+
+    // Закрыть соединение намеренно (без реконнекта)
+    disconnect() {
+        this.intentionalClose = true;
+        if (this.ws) this.ws.close();
     }
 
     sendPacket(packet) {
@@ -65,11 +76,8 @@ class NetworkManager {
 
     handlePacket(packet) {
         console.log('Received:', packet);
-
         const handler = this.messageHandlers[packet.type];
-        if (handler) {
-            handler(packet);
-        }
+        if (handler) handler(packet);
     }
 
     on(packetType, handler) {
@@ -79,7 +87,6 @@ class NetworkManager {
     updateConnectionStatus(connected) {
         const dot = document.getElementById('statusDot');
         const text = document.getElementById('statusText');
-
         if (connected) {
             dot.className = 'status-dot connected';
             text.textContent = 'Connected';
@@ -91,6 +98,7 @@ class NetworkManager {
         }
     }
 
+    
     enableTestMode() {
         this.testMode = true;
     }

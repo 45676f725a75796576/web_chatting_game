@@ -302,3 +302,438 @@ body {
     transform: translateY(-2px);
 }
 
+/* ===== Skin / Room Skin UI ===== */
+
+.btn-action {
+    position: fixed;
+    padding: 12px 20px;
+    font-size: 13px;
+    border: none;
+    border-radius: 10px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+    z-index: 100;
+  }
+  
+  .btn-skin {
+    bottom: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #9775fa, #845ef7);
+    box-shadow: 0 4px 14px rgba(151, 117, 250, 0.45);
+  }
+  
+  .btn-room-skin {
+    bottom: 20px;
+    right: 160px;
+    background: linear-gradient(135deg, #339af0, #1c7ed6);
+    box-shadow: 0 4px 14px rgba(51, 154, 240, 0.45);
+  }
+  
+  .btn-action:hover {
+    transform: translateY(-2px);
+  }
+  
+  .btn-room {
+    background: linear-gradient(135deg, #339af0, #1c7ed6);
+  }
+  
+  /* Превью скина */
+  .skin-preview-box {
+    width: 100%;
+    height: 120px;
+    background: #0f3460;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 2px solid #1a3a6e;
+  }
+  
+  .skin-preview-img {
+    max-height: 110px;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 6px;
+  }
+  
+  .skin-preview-placeholder {
+    color: #555;
+    font-size: 13px;
+  }
+  
+  /* Превью фона комнаты */
+  .room-preview-box {
+    width: 100%;
+    height: 140px;
+    background: #0f3460;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 2px solid #1a3a6e;
+  }
+  
+  .room-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  /* Сетка готовых скинов */
+  .skin-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  
+  .skin-grid-item {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background: #0f3460;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: border-color 0.2s, transform 0.15s;
+    padding: 4px;
+  }
+  
+  .skin-grid-item:hover {
+    border-color: #9775fa;
+    transform: scale(1.08);
+  }
+  
+  .skin-grid-item.selected {
+    border-color: #e94560;
+  }
+  
+  /* Слайдеры */
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: #aaa;
+  }
+  
+  .slider-row input[type="range"] {
+    flex: 1;
+    accent-color: #9775fa;
+  }
+  
+  /* Метки в модалах */
+  .modal-label {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 8px;
+  }
+  
+  .modal-hint {
+    font-size: 12px;
+    color: #f08c00;
+    margin-top: 10px;
+    text-align: center;
+  }
+  
+
+  #roomSkinGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  
+  #roomSkinGrid .skin-grid-item {
+    aspect-ratio: 16/9;
+    object-fit: cover;
+  }
+  
+  /* ===== Room Panel ===== */
+#roomPanel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    margin: 10px auto;
+    flex-wrap: wrap;
+}
+
+.room-join {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#roomIdInput {
+    width: 120px;
+    padding: 10px 14px;
+    font-size: 15px;
+    border: 2px solid #0f3460;
+    border-radius: 8px;
+    background: #0f3460;
+    color: white;
+    outline: none;
+    transition: border-color 0.3s;
+    /* убираем стрелки у number input */
+    -moz-appearance: textfield;
+}
+
+#roomIdInput::-webkit-outer-spin-button,
+#roomIdInput::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+#roomIdInput:focus {
+    border-color: #339af0;
+}
+
+#roomIdInput::placeholder {
+    color: #555;
+}
+
+.btn-join {
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #339af0, #1c7ed6);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 12px rgba(51, 154, 240, 0.35);
+}
+
+.btn-join:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(51, 154, 240, 0.5);
+}
+
+.btn-join:active {
+    transform: translateY(0);
+}
+
+
+
+/* ===== License Button ===== */
+.btn-license {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #888;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.btn-license:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ccc;
+}
+
+/* ===== License Modal ===== */
+.license-modal-content {
+    max-width: 600px;
+}
+
+.license-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #ccc;
+}
+
+.license-body a {
+    color: #9775fa;
+    text-decoration: none;
+}
+
+.license-body a:hover {
+    text-decoration: underline;
+}
+
+.cc-icon {
+    max-width: 1.1em;
+    max-height: 1.1em;
+    margin-left: 4px;
+    vertical-align: middle;
+    filter: invert(1) opacity(0.7);
+}
+
+.license-divider {
+    border: none;
+    border-top: 1px solid #1a3a6e;
+    margin: 16px 0;
+}
+
+.license-plain {
+    color: #777;
+    font-size: 12px;
+    font-style: italic;
+}
+
+
+
+/* ─── Обёртка игровой области (canvas + правая панель) ─── */
+.game-area-wrapper {
+    position: relative;
+    display: inline-block;
+    line-height: 0; /* убирает лишний отступ под canvas */
+}
+
+/* ─── Правая навигационная панель ─── */
+.nav-panel {
+    position: absolute;
+    top: 0;
+    right: -160px;        /* снаружи canvas, справа */
+    width: 148px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0;
+    z-index: 10;
+}
+
+.nav-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px 0;
+}
+
+.nav-section-title {
+    font-size: 12px;
+    font-weight: bold;
+    color: #aad4f5;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.door-buttons-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.nav-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.12);
+    margin: 6px 0;
+}
+
+/* ─── Универсальная кнопка навигации ─── */
+.nav-btn {
+    width: 100%;
+    padding: 11px 8px;
+    font-size: 13px;
+    font-weight: bold;
+    border: 2px solid #1a3a6e;
+    border-radius: 10px;
+    background: #0d1f40;
+    color: #cce4ff;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    text-align: center;
+    line-height: 1.3;
+}
+.nav-btn:hover {
+    background: #1a3a70;
+    border-color: #339af0;
+    color: white;
+    transform: translateX(-2px);
+}
+.nav-btn:active {
+    transform: translateX(0);
+}
+
+/* Дверь */
+.nav-door-btn {
+    border-color: #2a4a8a;
+    background: #0f2550;
+}
+.nav-door-btn:hover {
+    border-color: #51cf66;
+    background: #0a2a15;
+}
+.nav-door-btn.active-room {
+    border-color: #51cf66 !important;
+    background: #0a2a15 !important;
+    color: #51cf66 !important;
+}
+
+/* Лифт */
+.nav-elevator-btn {
+    border-color: #6741d9;
+    background: #1a0d40;
+}
+.nav-elevator-btn:hover {
+    border-color: #9775fa;
+    background: #2a1060;
+    color: #d0bfff;
+}
+
+/* Выйти из комнаты */
+.nav-exit-btn {
+    border-color: #c92a2a;
+    background: #2a0d0d;
+    color: #ffa8a8;
+}
+.nav-exit-btn:hover {
+    border-color: #ff6b6b;
+    background: #3d1010;
+    color: #ffc9c9;
+}
+
+/* ─── Elevator Modal ─── */
+.elevator-modal-content {
+    max-width: 380px;
+}
+
+.elevator-floor-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.elevator-floor-btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: bold;
+    border: 2px solid #2a4a8a;
+    border-radius: 10px;
+    background: #0f3460;
+    color: #cce4ff;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    text-align: left;
+}
+.elevator-floor-btn:hover {
+    background: #1a4a80;
+    border-color: #339af0;
+    color: white;
+}
+.elevator-floor-btn.active-floor {
+    border-color: #51cf66 !important;
+    color: #51cf66 !important;
+    background: #0a2a15 !important;
+}
