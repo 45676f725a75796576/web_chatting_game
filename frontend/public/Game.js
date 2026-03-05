@@ -45,7 +45,7 @@ class Game {
         if (packet.state === 'success') {
             this.myPlayerId = packet.player_id;
             this.authenticated = true;
-            this.mySkinUrl = packet.img || null;
+            this.mySkinUrl = this._isCatUrl(packet.img) ? this._randomSkin() : packet.img;
             alert(`Registration successful!\n\nSave this identifier:\n${packet.identifier_str}\n\nYour Player ID: ${packet.player_id}`);
             networkManager.sendPacket({ type: 'enter_game' });
         } else {
@@ -57,7 +57,7 @@ class Game {
         if (packet.state === 'success') {
             this.myPlayerId = packet.player_id;
             this.authenticated = true;
-            this.mySkinUrl = packet.img || null;
+            this.mySkinUrl = this._isCatUrl(packet.img) ? this._randomSkin() : packet.img;
             authUI.showSuccess('Login successful!');
             setTimeout(() => networkManager.sendPacket({ type: 'enter_game' }), 500);
         } else {
@@ -68,6 +68,7 @@ class Game {
     // ── Room ────────────────────────────────────────────────────
 
     handleRoom(packet) {
+        console.log('[handleRoom]', JSON.stringify(packet));
         if (packet.state === 'error') {
             authUI.showError(packet.message || 'Failed to enter room');
             return;
@@ -75,9 +76,10 @@ class Game {
 
         const roomId = packet.room_id || packet.place?.room_id;
         const floor  = packet.floor   || packet.place?.floor;
-        const img = packet.img || packet.place?.img
-        || CONFIG.ROOM_BACKGROUNDS[Math.floor(Math.random() * CONFIG.ROOM_BACKGROUNDS.length)];
-        
+        const serverImg = packet.img || packet.place?.img;
+        const img = (serverImg && !this._isCatUrl(serverImg))
+            ? serverImg
+            : this._roomBg(roomId);  // всегда фолбэк если нет нормального img
         if (!this.inGame) {
             authUI.switchToGame();
             this.inGame = true;
@@ -93,6 +95,7 @@ class Game {
             if (this.mySkinUrl) {
                 this.players[this.myPlayerId].setSkin(this.mySkinUrl);
             }
+            this.mySkinUrl = this.players[this.myPlayerId].skinUrl;
 
             document.getElementById('myPlayerId').textContent = this.myPlayerId;
             document.getElementById('skinControls').classList.remove('hidden');
@@ -150,23 +153,24 @@ class Game {
 
     // ── Players ─────────────────────────────────────────────────
 
-    handleNewPlayer(packet) {
-        if (packet.player_id == this.myPlayerId) return;
+handleNewPlayer(packet) {
+    if (packet.player_id == this.myPlayerId) return;
 
-        this.players[packet.player_id] = new Player(
-            packet.player_id,
-            packet.pos.x,
-            packet.pos.y,
-            packet.username || 'Player'
-        );
+    this.players[packet.player_id] = new Player(
+        packet.player_id,
+        packet.pos.x,
+        packet.pos.y,
+        packet.username || 'Player'
+    );
 
-        if (packet.skin_url) {
-            this.players[packet.player_id].setSkin(packet.skin_url);
-        }
-
-        this.updatePlayerCount();
-        this._announceMyself();
+    const skinUrl = this._isCatUrl(packet.skin_url) ? this._randomSkin() : packet.skin_url;
+    if (skinUrl) {
+        this.players[packet.player_id].setSkin(skinUrl);
     }
+
+    this.updatePlayerCount();
+    this._announceMyself();
+}
 
     handlePlayerPos(packet) {
         if (packet.player_id == this.myPlayerId) return;
@@ -371,8 +375,12 @@ class Game {
 
     handleSkinUpdate(packet) {
         const player = this.players[packet.player_id];
-        if (player) player.setSkin(packet.url, player.skinWidth, player.skinHeight);
+        if (!player) return;
+        const url = this._isCatUrl(packet.url) ? this._randomSkin() : packet.url;
+        player.setSkin(url, player.skinWidth, player.skinHeight);
     }
+
+
 
     // ── Room skin modal ─────────────────────────────────────────
 
@@ -430,7 +438,9 @@ class Game {
     }
 
     handleRoomSkinUpdate(packet) {
-        if (packet.url) this._applyRoomBackground(packet.url);
+        if (!packet.url) return;
+        const url = this._isCatUrl(packet.url) ? this._randomBg() : packet.url;
+        this._applyRoomBackground(url);
     }
 
     _applyRoomBackground(url) {
@@ -600,4 +610,25 @@ class Game {
         networkManager.sendPacket({ type: 'enter_floor', floor_id: floorId });
         this.closeElevatorModal();
     }
+
+
+    _isCatUrl(url) {
+    return !url || url.includes('cataas') || url.includes('placekitten') || url.includes('loremflickr');
+    }
+
+    _randomSkin() {
+        return CONFIG.SKINS[Math.floor(Math.random() * CONFIG.SKINS.length)];
+    }
+
+    _randomBg() {
+        return CONFIG.ROOM_BACKGROUNDS[Math.floor(Math.random() * CONFIG.ROOM_BACKGROUNDS.length)];
+    }
+    _roomBg(roomId) {
+    const id = parseInt(roomId) || 0;
+    return CONFIG.ROOM_BACKGROUNDS[id % CONFIG.ROOM_BACKGROUNDS.length];
 }
+
+
+}
+
+

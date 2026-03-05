@@ -78,10 +78,10 @@
         <!-- Кнопки скин/фон — появляются после входа в игру -->
         <div id="skinControls" class="hidden">
             <button class="btn-action btn-skin" onclick="game.openSkinModal()">
-                🧑 Сменить скин  
+                🧑 Change skin  
             </button>
             <button class="btn-action btn-room-skin" onclick="game.openRoomSkinModal()">
-                🖼️ Фон комнаты
+                🖼️ Room skin
             </button>
         </div>
     </div>
@@ -89,17 +89,17 @@
     <!-- ===== MODAL: СКИН ИГРОКА ===== -->
     <div id="skinModal" class="modal hidden">
         <div class="modal-content">
-            <h2>🧑 Сменить скин</h2>
+            <h2>🧑 Change skin</h2>
 
             <div class="skin-preview-box">
                 <img id="skinPreviewImg" src="" alt="preview" class="skin-preview-img hidden" />
-                <span id="skinPreviewPlaceholder" class="skin-preview-placeholder">Превью</span>
+                <span id="skinPreviewPlaceholder" class="skin-preview-placeholder">Preview</span>
             </div>
 
-            <p class="modal-label">Готовые скины:</p>
+            <p class="modal-label">Skins:</p>
             <div class="skin-grid" id="skinGrid"></div>
 
-            <p class="modal-label" style="margin-top:16px;">Или вставь URL изображения:</p>
+            <p class="modal-label" style="margin-top:16px;"> URL </p>
             <div class="input-group">
                 <input type="text" id="skinUrlInput"
                        placeholder="https://example.com/skin.png"
@@ -107,19 +107,19 @@
             </div>
 
             <div class="slider-row">
-                <label>Ширина: <span id="widthValue">3.0</span></label>
-                <input type="range" id="skinWidthSlider" min="0.1" max="2" step="0.1"
-                       value="0.4" oninput="game.updateSkinSize()" />
+                <label>Width: <span id="widthValue">3.0</span></label>
+                <input type="range" id="skinWidthSlider" min="0.1" max="10" step="0.1"
+                       value="3" oninput="game.updateSkinSize()" />
             </div>
             <div class="slider-row">
-                <label>Высота: <span id="heightValue">4.5</span></label>
-                <input type="range" id="skinHeightSlider" min="0.1" max="2" step="0.1"
-                       value="0.4" oninput="game.updateSkinSize()" />
+                <label>Height: <span id="heightValue">4.5</span></label>
+                <input type="range" id="skinHeightSlider" min="0.1" max="10" step="0.1"
+                       value="3.5" oninput="game.updateSkinSize()" />
             </div>
 
             <div class="modal-buttons">
-                <button class="btn" onclick="game.applySkin()">✅ Применить</button>
-                <button class="btn btn-secondary" onclick="game.closeSkinModal()">Отмена</button>
+                <button class="btn" onclick="game.applySkin()">✅ Accept</button>
+                <button class="btn btn-secondary" onclick="game.closeSkinModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -127,24 +127,24 @@
     <!-- ===== MODAL: ФОН КОМНАТЫ ===== -->
     <div id="roomSkinModal" class="modal hidden">
         <div class="modal-content">
-            <h2>🖼️ Фон комнаты</h2>
+            <h2>🖼️ Room skin</h2>
 
             <div class="room-preview-box">
                 <img id="roomSkinPreviewImg" src="" alt="preview" class="room-preview-img hidden" />
                 <span id="roomSkinPreviewPlaceholder" class="skin-preview-placeholder">Превью</span>
             </div>
 
-            <p class="modal-label">Готовые фоны:</p>
+            <p class="modal-label">background:</p>
             <div class="skin-grid" id="roomSkinGrid"></div>
 
-            <p class="modal-label" style="margin-top:16px;">Или вставь URL изображения:</p>
+            <p class="modal-label" style="margin-top:16px;"> URL :</p>
             <div class="input-group">
                 <input type="text" id="roomSkinUrlInput"
                        placeholder="https://example.com/background.jpg"
                        oninput="game.previewRoomSkin()" />
             </div>
 
-            <p class="modal-hint">⚠️ Фон изменится для всех игроков в комнате</p>
+            <p class="modal-hint">⚠️ The background will change for all players in the room</p>
 
             <div class="modal-buttons">
                 <button class="btn btn-room" onclick="game.applyRoomSkin()">✅ Применить</button>

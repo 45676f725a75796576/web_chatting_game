@@ -1,5 +1,5 @@
 const CONFIG = {
-    WS_URL: '//wss://macadev.cz/ws/',
+    WS_URL: 'wss://macadev.cz/ws/',
     MAX_RECONNECT_ATTEMPTS: 5,
     RECONNECT_DELAY: 2000,
     PLAYER_SPEED: 4,
