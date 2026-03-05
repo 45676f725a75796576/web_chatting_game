@@ -14,24 +14,29 @@ class Game {
         this.inputHandler = new InputHandler();
         this.chatManager = new ChatManager();
 
+        this.currentFloorId  = null;
+        this.availableRooms  = [];
+        this.availableFloors = [];
+        this.isInRoom        = false;
+
         this.setupPacketHandlers();
     }
 
     setupPacketHandlers() {
-        networkManager.on('server_sign_in',        (p) => this.handleSignIn(p));
-        networkManager.on('server_login',           (p) => this.handleLogin(p));
-        networkManager.on('server_room',            (p) => this.handleRoom(p));
-        networkManager.on('server_floor',           (p) => this.handleFloor(p));
-        networkManager.on('server_new_player',      (p) => this.handleNewPlayer(p));
-        networkManager.on('server_player_pos',      (p) => this.handlePlayerPos(p));
-        networkManager.on('server_chat',            (p) => this.handleChat(p));
-        networkManager.on('server_disconnect',      (p) => this.handleDisconnect(p));
-        networkManager.on('server_skin',            (p) => this.handleSkinResponse(p));
-        networkManager.on('server_skin_update',     (p) => this.handleSkinUpdate(p));
-        networkManager.on('server_room_skin',       (p) => this.handleRoomSkinResponse(p));
-        networkManager.on('server_room_skin_update',(p) => this.handleRoomSkinUpdate(p));
-        networkManager.on('server_utm',             ()  => console.log('UTM tracked'));
-        networkManager.on('server_error',           (p) => authUI.showError(p.message || 'Server error'));
+        networkManager.on('server_sign_in',         (p) => this.handleSignIn(p));
+        networkManager.on('server_login',            (p) => this.handleLogin(p));
+        networkManager.on('server_room',             (p) => this.handleRoom(p));
+        networkManager.on('server_floor',            (p) => this.handleFloor(p));
+        networkManager.on('server_new_player',       (p) => this.handleNewPlayer(p));
+        networkManager.on('server_player_pos',       (p) => this.handlePlayerPos(p));
+        networkManager.on('server_chat',             (p) => this.handleChat(p));
+        networkManager.on('server_disconnect',       (p) => this.handleDisconnect(p));
+        networkManager.on('server_skin',             (p) => this.handleSkinResponse(p));
+        networkManager.on('server_skin_update',      (p) => this.handleSkinUpdate(p));
+        networkManager.on('server_room_skin',        (p) => this.handleRoomSkinResponse(p));
+        networkManager.on('server_room_skin_update', (p) => this.handleRoomSkinUpdate(p));
+        networkManager.on('server_utm',              ()  => console.log('UTM tracked'));
+        networkManager.on('server_error',            (p) => authUI.showError(p.message || 'Server error'));
     }
 
     // ── Auth ────────────────────────────────────────────────────
@@ -47,7 +52,6 @@ class Game {
             authUI.showError(packet.message || 'Registration failed');
         }
     }
-    
 
     handleLogin(packet) {
         if (packet.state === 'success') {
@@ -60,7 +64,6 @@ class Game {
             authUI.showError(packet.message || 'Login failed');
         }
     }
-    
 
     // ── Room ────────────────────────────────────────────────────
 
@@ -69,15 +72,16 @@ class Game {
             authUI.showError(packet.message || 'Failed to enter room');
             return;
         }
-    
+
         const roomId = packet.room_id || packet.place?.room_id;
-        const floor  = packet.floor  || packet.place?.floor;
-        const img    = packet.img    || packet.place?.img;
-    
+        const floor  = packet.floor   || packet.place?.floor;
+        const img = packet.img || packet.place?.img
+        || CONFIG.ROOM_BACKGROUNDS[Math.floor(Math.random() * CONFIG.ROOM_BACKGROUNDS.length)];
+        
         if (!this.inGame) {
             authUI.switchToGame();
             this.inGame = true;
-    
+
             this.players[this.myPlayerId] = new Player(
                 this.myPlayerId,
                 CONFIG.CANVAS_WIDTH / 2,
@@ -85,41 +89,43 @@ class Game {
                 this.myUsername || 'You',
                 '#e94560'
             );
-    
+
             if (this.mySkinUrl) {
                 this.players[this.myPlayerId].setSkin(this.mySkinUrl);
             }
-    
+
             document.getElementById('myPlayerId').textContent = this.myPlayerId;
             document.getElementById('skinControls').classList.remove('hidden');
             this.updatePlayerCount();
             this.startGameLoop();
             this.sendUtm();
+
         } else {
-            // Смена комнаты — чистим чужих игроков
             for (let id in this.players) {
                 if (id != this.myPlayerId) delete this.players[id];
             }
             this.updatePlayerCount();
         }
-    
+
         this.currentRoomId = roomId;
         this.currentFloor  = floor;
         document.getElementById('currentRoomId').textContent = roomId || '-';
-    
+        document.getElementById('currentFloorDisplay').textContent = floor ?? '—';
+
         if (img) this._applyRoomBackground(img);
-    
-        // Небольшая задержка — даём серверу оформить вход в комнату
-        this._announceMyself(); 
+
+        // Показываем панель в режиме «комнаты»
+        this._showRoomNav(roomId);
+
+        this._announceMyself();
     }
-    
+
     joinRoom() {
         const roomId = parseInt(document.getElementById('roomIdInput').value);
         if (!roomId || isNaN(roomId)) {
             authUI.showError('Please enter a valid room ID');
             return;
         }
-        // == вместо === — сравниваем без учёта типа
         if (roomId == this.currentRoomId) {
             authUI.showError('You are already in this room');
             return;
@@ -127,14 +133,19 @@ class Game {
         networkManager.sendPacket({ type: 'enter_room', room_id: roomId });
         document.getElementById('roomIdInput').value = '';
     }
-    
-    
 
     handleFloor(packet) {
-        if (packet.state === 'error') { authUI.showError(packet.message || 'Failed to enter floor'); return; }
-        this.currentFloorId  = packet.floor_id;
-        this.availableRooms  = packet.rooms;
+        if (packet.state === 'error') {
+            authUI.showError(packet.message || 'Failed to enter floor');
+            return;
+        }
+        this.currentFloorId = packet.floor_id;
+        this.availableRooms = packet.rooms || [];
+        document.getElementById('currentFloorDisplay').textContent = packet.floor_id;
         console.log('Entered floor:', packet.floor_id, 'Rooms:', packet.rooms);
+
+        // Показываем панель в режиме «этажа»
+        this._showFloorNav(packet.floor_id, packet.rooms || []);
     }
 
     // ── Players ─────────────────────────────────────────────────
@@ -149,20 +160,17 @@ class Game {
             packet.username || 'Player'
         );
 
-        // Если у нового игрока уже есть скин в пакете — применяем
         if (packet.skin_url) {
             this.players[packet.player_id].setSkin(packet.skin_url);
         }
 
         this.updatePlayerCount();
-
-        // Отвечаем своей позицией и скином чтобы новый игрок нас увидел
         this._announceMyself();
     }
 
     handlePlayerPos(packet) {
         if (packet.player_id == this.myPlayerId) return;
-    
+
         if (!this.players[packet.player_id]) {
             this.players[packet.player_id] = new Player(
                 packet.player_id,
@@ -176,13 +184,12 @@ class Game {
             if (packet.username) this.players[packet.player_id].username = packet.username;
             this.players[packet.player_id].setPosition(packet.pos.x, packet.pos.y);
         }
-    
-        // Применяем flip независимо от того новый игрок или нет
+
         if (packet.flip !== undefined) {
             this.players[packet.player_id].flip = packet.flip;
         }
     }
-    
+
     handleDisconnect(packet) {
         delete this.players[packet.player_id];
         this.updatePlayerCount();
@@ -200,24 +207,17 @@ class Game {
 
     // ── Helpers ─────────────────────────────────────────────────
 
-    /**
-     * Шлёт всем текущую позицию + скин.
-     * Вызывается при входе в комнату и при появлении нового игрока.
-     */
     _announceMyself() {
         if (this.testMode) return;
         const me = this.players[this.myPlayerId];
         if (!me) return;
 
-        // Позиция
         networkManager.sendPacket({
             type: 'player_pos',
             pos: { x: Math.round(me.x), y: Math.round(me.y) },
-            flip: me.flip  // ← добавить
+            flip: me.flip
         });
-        
 
-        // Скин — чтобы все видели наш текущий скин
         if (me.skinUrl) {
             networkManager.sendPacket({ type: 'skin', url: me.skinUrl });
         }
@@ -230,11 +230,11 @@ class Game {
     }
 
     startTestMode(playerId, username) {
-        this.testMode     = true;
-        this.myPlayerId   = playerId;
-        this.myUsername   = username;
+        this.testMode      = true;
+        this.myPlayerId    = playerId;
+        this.myUsername    = username;
         this.authenticated = true;
-        this.inGame       = true;
+        this.inGame        = true;
 
         networkManager.enableTestMode();
 
@@ -268,11 +268,10 @@ class Game {
                     networkManager.sendPacket({
                         type: 'player_pos',
                         pos: { x: Math.round(me.x), y: Math.round(me.y) },
-                        flip: me.flip  // ← добавить
+                        flip: me.flip
                     });
                     this.lastSentPos = { x: me.x, y: me.y };
                 }
-                
             }
         }
     }
@@ -466,10 +465,139 @@ class Game {
             document.cookie = `utm_sent=true; expires=${expires}; path=/`;
         }
     }
+
     changeRoomSkin(url) {
         if (!url || this.testMode) return;
         networkManager.sendPacket({ type: 'room_skin', url });
         this._applyRoomBackground(url);
     }
-    
+
+    // ═══════════════════════════════════════════════════════════
+    // ── Навигация по этажам и комнатам ──────────────────────────
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * Показывает правую панель в режиме ЭТАЖА:
+     * 3 кнопки дверей + кнопка лифта.
+     * Кнопка «Фон комнаты» скрыта.
+     */
+    _showFloorNav(floorId, rooms) {
+        this.isInRoom = false;
+
+        document.getElementById('navPanel').classList.remove('hidden');
+        document.getElementById('floorNav').classList.remove('hidden');
+        document.getElementById('roomNav').classList.add('hidden');
+        document.getElementById('navFloorId').textContent = floorId;
+
+        // Фон комнаты нельзя менять на этаже
+        document.getElementById('btnRoomSkin').classList.add('hidden');
+
+        // Строим 3 кнопки дверей
+        const doorList = document.getElementById('doorButtons');
+        doorList.innerHTML = '';
+        const roomsToShow = rooms.slice(0, 3);
+
+        roomsToShow.forEach((room, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'nav-btn nav-door-btn';
+            if (room.room_id == this.currentRoomId) btn.classList.add('active-room');
+            btn.textContent = room.username
+                ? `🚪 ${room.username}`
+                : `🚪 Комната ${i + 1}`;
+            btn.title = `Room ID: ${room.room_id}`;
+            btn.onclick = () => this._joinRoomById(room.room_id);
+            doorList.appendChild(btn);
+        });
+
+        // Заглушки если комнат меньше 3
+        for (let i = roomsToShow.length; i < 3; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'nav-btn nav-door-btn';
+            btn.textContent = `🚪 Комната ${i + 1}`;
+            btn.style.opacity = '0.35';
+            btn.disabled = true;
+            doorList.appendChild(btn);
+        }
+    }
+
+    /**
+     * Показывает правую панель в режиме КОМНАТЫ:
+     * только кнопка «Выйти».
+     * Кнопка «Фон комнаты» появляется.
+     */
+    _showRoomNav(roomId) {
+        this.isInRoom = true;
+
+        document.getElementById('navPanel').classList.remove('hidden');
+        document.getElementById('floorNav').classList.add('hidden');
+        document.getElementById('roomNav').classList.remove('hidden');
+        document.getElementById('navRoomId').textContent = roomId;
+
+        // Фон комнаты можно менять только внутри комнаты
+        document.getElementById('btnRoomSkin').classList.remove('hidden');
+    }
+
+    /**
+     * Выйти из комнаты → вернуться на текущий этаж.
+     */
+    exitRoom() {
+        if (this.currentFloorId !== null && this.currentFloorId !== undefined) {
+            networkManager.sendPacket({ type: 'enter_floor', floor_id: this.currentFloorId });
+        } else {
+            authUI.showError('Не удалось определить текущий этаж');
+        }
+    }
+
+    /**
+     * Войти в комнату по ID (из кнопок дверей).
+     */
+    _joinRoomById(roomId) {
+        if (roomId == this.currentRoomId && this.isInRoom) return;
+        networkManager.sendPacket({ type: 'enter_room', room_id: roomId });
+    }
+
+    // ── Лифт ───────────────────────────────────────────────────
+
+    openElevatorModal() {
+        const list = document.getElementById('elevatorFloorList');
+        list.innerHTML = '';
+
+        if (this.availableFloors.length > 0) {
+            this.availableFloors.forEach(floor => {
+                const btn = document.createElement('button');
+                btn.className = 'elevator-floor-btn';
+                if (floor.floor_id == this.currentFloorId) btn.classList.add('active-floor');
+                btn.textContent = `🏢 Этаж ${floor.floor_id}${floor.name ? ' — ' + floor.name : ''}`;
+                btn.onclick = () => {
+                    this._goToFloor(floor.floor_id);
+                    this.closeElevatorModal();
+                };
+                list.appendChild(btn);
+            });
+        } else {
+            list.innerHTML = '<p class="modal-hint" style="text-align:center;margin:8px 0;">Список этажей не получен.<br>Введите номер вручную ↓</p>';
+        }
+
+        if (this.currentFloorId !== null) {
+            document.getElementById('elevatorFloorInput').value = this.currentFloorId;
+        }
+
+        document.getElementById('elevatorModal').classList.remove('hidden');
+    }
+
+    closeElevatorModal() {
+        document.getElementById('elevatorModal').classList.add('hidden');
+    }
+
+    goToFloorFromInput() {
+        const val = parseInt(document.getElementById('elevatorFloorInput').value);
+        if (isNaN(val)) { authUI.showError('Введите корректный номер этажа'); return; }
+        this._goToFloor(val);
+    }
+
+    _goToFloor(floorId) {
+        if (floorId == this.currentFloorId && !this.isInRoom) return;
+        networkManager.sendPacket({ type: 'enter_floor', floor_id: floorId });
+        this.closeElevatorModal();
+    }
 }

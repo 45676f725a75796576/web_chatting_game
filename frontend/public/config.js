@@ -1,5 +1,5 @@
 const CONFIG = {
-    WS_URL: 'ws://89.177.138.71:8080',
+    WS_URL: '//wss://macadev.cz/ws/',
     MAX_RECONNECT_ATTEMPTS: 5,
     RECONNECT_DELAY: 2000,
     PLAYER_SPEED: 4,
@@ -7,6 +7,11 @@ const CONFIG = {
     CANVAS_HEIGHT: 700,
     PLAYER_RADIUS: 20,
     CHAT_DURATION: 5000,
+
+    DEFAULT_SKIN_WIDTH:  3,
+    DEFAULT_SKIN_HEIGHT: 3.5,
+
+
     POSITION_UPDATE_THRESHOLD: 2,
     SKINS: [
         'assets/characters/20260301_1430_Image Generation_simple_compose_01kjmsep8afagapwd6z9dkajfq.png',

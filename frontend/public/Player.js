@@ -8,8 +8,10 @@ class Player {
         this.skinUrl = null;
         this.skinImage = null;
         this.skinLoaded = false;
-        this.skinWidth = 0.4;
-        this.skinHeight = 0.4;
+
+        this.skinWidth  = CONFIG.DEFAULT_SKIN_WIDTH;
+        this.skinHeight = CONFIG.DEFAULT_SKIN_HEIGHT;
+        
         this.flip = false; // false = вправо, true = влево
 
         const randomSkin = CONFIG.SKINS[Math.floor(Math.random() * CONFIG.SKINS.length)];
@@ -21,7 +23,7 @@ class Player {
         return `hsl(${hue}, 70%, 60%)`;
     }
 
-    setSkin(url, width = 0.4, height = 0.4) {
+    setSkin(url, width = CONFIG.DEFAULT_SKIN_WIDTH, height = CONFIG.DEFAULT_SKIN_HEIGHT) {
         this.skinUrl = url;
         this.skinWidth = width;
         this.skinHeight = height;
