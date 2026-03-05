@@ -74,12 +74,15 @@ class Game {
             return;
         }
 
-        const roomId = packet.room_id || packet.place?.room_id;
-        const floor  = packet.floor   || packet.place?.floor;
-        const serverImg = packet.img || packet.place?.img;
-        const img = (serverImg && !this._isCatUrl(serverImg))
+        const roomId    = packet.room_id    || packet.place?.room_id;
+        const floor     = packet.floor      || packet.place?.floor;
+        const serverImg = packet.img        || packet.place?.img;
+
+        // Фон: берём серверный если он не кошачий, иначе — детерминированный по roomId
+        const bg = (serverImg && !this._isCatUrl(serverImg))
             ? serverImg
-            : this._roomBg(roomId);  // всегда фолбэк если нет нормального img
+            : this._roomBg(roomId);
+
         if (!this.inGame) {
             authUI.switchToGame();
             this.inGame = true;
@@ -110,16 +113,15 @@ class Game {
             this.updatePlayerCount();
         }
 
-        this.currentRoomId = roomId;
-        this.currentFloor  = floor;
-        document.getElementById('currentRoomId').textContent = roomId || '-';
+        this.currentRoomId  = roomId;
+        this.currentFloor   = floor;
+        this.currentRoomBg  = bg; // ← сохраняем текущий фон
+        document.getElementById('currentRoomId').textContent       = roomId || '-';
         document.getElementById('currentFloorDisplay').textContent = floor ?? '—';
 
-        if (img) this._applyRoomBackground(img);
+        this._applyRoomBackground(bg); // без if — применяем всегда
 
-        // Показываем панель в режиме «комнаты»
         this._showRoomNav(roomId);
-
         this._announceMyself();
     }
 
@@ -429,6 +431,7 @@ handleNewPlayer(packet) {
         const url = document.getElementById('roomSkinUrlInput').value.trim();
         if (!url) { alert('Введи URL фона'); return; }
         if (!this.testMode) networkManager.sendPacket({ type: 'room_skin', url });
+        this.currentRoomBg = url; // ← сохраняем
         this._applyRoomBackground(url);
         this.closeRoomSkinModal();
     }
@@ -437,11 +440,15 @@ handleNewPlayer(packet) {
         if (packet.state === 'error') authUI.showError(packet.message || 'Failed to change room skin');
     }
 
+
     handleRoomSkinUpdate(packet) {
-        if (!packet.url) return;
-        const url = this._isCatUrl(packet.url) ? this._randomBg() : packet.url;
+        const url = packet.img || packet.url; // ← сервер шлёт img, не url
+        if (!url) return;
+        this.currentRoomBg = url;
         this._applyRoomBackground(url);
     }
+
+
 
     _applyRoomBackground(url) {
         this.canvas.style.backgroundImage    = `url('${url}')`;
@@ -478,7 +485,7 @@ handleNewPlayer(packet) {
 
     changeRoomSkin(url) {
         if (!url || this.testMode) return;
-        networkManager.sendPacket({ type: 'room_skin', url });
+        networkManager.sendPacket({ type: 'room_skin', img: url});
         this._applyRoomBackground(url);
     }
 
