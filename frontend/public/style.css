@@ -737,3 +737,13 @@ body {
     color: #51cf66 !important;
     background: #0a2a15 !important;
 }
+
+.nav-door-btn.occupied-room {
+    border-color: #f59f00;
+    background: #2a1f00;
+    color: #ffd43b;
+}
+.nav-door-btn.occupied-room:hover {
+    border-color: #ffd43b;
+    background: #3d2e00;
+}

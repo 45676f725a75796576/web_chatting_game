@@ -11,6 +11,7 @@ class Game {
 
         this.canvas = document.getElementById('gameCanvas');
         this.renderer = new GameRenderer(this.canvas);
+        this.selectedRoomBg = null;
         this.inputHandler = new InputHandler();
         this.chatManager = new ChatManager();
 
@@ -73,20 +74,25 @@ class Game {
             authUI.showError(packet.message || 'Failed to enter room');
             return;
         }
-
-        const roomId    = packet.room_id    || packet.place?.room_id;
-        const floor     = packet.floor      || packet.place?.floor;
-        const serverImg = packet.img        || packet.place?.img;
-
-        // Фон: берём серверный если он не кошачий, иначе — детерминированный по roomId
-        const bg = (serverImg && !this._isCatUrl(serverImg))
-            ? serverImg
-            : this._roomBg(roomId);
-
+        const roomId   = packet.room_id    || packet.place?.room_id;
+        const floor    = packet.floor      || packet.place?.floor;
+        const serverImg = packet.img       || packet.place?.img;
+    
+        // Определяем фон: валидный серверный → берём; иначе → случайный
+        let bg;
+        if (serverImg && !this._isCatUrl(serverImg)) {
+            bg = serverImg;
+        } else {
+            // Нет фона или кот — выбираем случайный и сохраняем на сервере
+            bg = this._randomBg();
+            if (!this.testMode) {
+                networkManager.sendPacket({ type: 'room_skin', url: bg });  // было img: bg            
+            }
+        }
+            
         if (!this.inGame) {
             authUI.switchToGame();
             this.inGame = true;
-
             this.players[this.myPlayerId] = new Player(
                 this.myPlayerId,
                 CONFIG.CANVAS_WIDTH / 2,
@@ -94,36 +100,30 @@ class Game {
                 this.myUsername || 'You',
                 '#e94560'
             );
-
-            if (this.mySkinUrl) {
-                this.players[this.myPlayerId].setSkin(this.mySkinUrl);
-            }
+            if (this.mySkinUrl) this.players[this.myPlayerId].setSkin(this.mySkinUrl);
             this.mySkinUrl = this.players[this.myPlayerId].skinUrl;
-
-            document.getElementById('myPlayerId').textContent = this.myPlayerId;
+            document.getElementById('myPlayerId').textContent    = this.myPlayerId;
             document.getElementById('skinControls').classList.remove('hidden');
             this.updatePlayerCount();
             this.startGameLoop();
             this.sendUtm();
-
         } else {
             for (let id in this.players) {
                 if (id != this.myPlayerId) delete this.players[id];
             }
             this.updatePlayerCount();
         }
-
+    
         this.currentRoomId  = roomId;
         this.currentFloor   = floor;
-        this.currentRoomBg  = bg; // ← сохраняем текущий фон
+        this.currentRoomBg  = bg;
         document.getElementById('currentRoomId').textContent       = roomId || '-';
         document.getElementById('currentFloorDisplay').textContent = floor ?? '—';
-
-        this._applyRoomBackground(bg); // без if — применяем всегда
-
+        this._applyRoomBackground(bg);
         this._showRoomNav(roomId);
         this._announceMyself();
     }
+    
 
     joinRoom() {
         const roomId = parseInt(document.getElementById('roomIdInput').value);
@@ -301,39 +301,28 @@ handleNewPlayer(packet) {
     // ── Skin modal ──────────────────────────────────────────────
 
     openSkinModal() {
+        this.selectedSkin = this.players[this.myPlayerId]?.skinUrl || null;
         const grid = document.getElementById('skinGrid');
         grid.innerHTML = '';
         CONFIG.SKINS.forEach(url => {
             const img = document.createElement('img');
             img.src = url;
             img.className = 'skin-grid-item';
-            img.title = url.split('/').pop();
+            if (url === this.selectedSkin) img.classList.add('selected');
             img.onclick = () => {
                 document.querySelectorAll('#skinGrid .skin-grid-item').forEach(i => i.classList.remove('selected'));
                 img.classList.add('selected');
-                document.getElementById('skinUrlInput').value = url;
+                this.selectedSkin = url;
                 this.previewSkin();
             };
             grid.appendChild(img);
         });
-
-        const me = this.players[this.myPlayerId];
-        if (me?.skinUrl) {
-            document.getElementById('skinUrlInput').value = me.skinUrl;
-            this.previewSkin();
-        }
-
+        if (this.selectedSkin) this.previewSkin();
         document.getElementById('skinModal').classList.remove('hidden');
     }
-
-    closeSkinModal() {
-        document.getElementById('skinModal').classList.add('hidden');
-        document.getElementById('skinUrlInput').value = '';
-        this._hideSkinPreview();
-    }
-
+    
     previewSkin() {
-        const url = document.getElementById('skinUrlInput').value.trim();
+        const url = this.selectedSkin;
         const img = document.getElementById('skinPreviewImg');
         if (url) {
             img.src = url;
@@ -343,32 +332,18 @@ handleNewPlayer(packet) {
             this._hideSkinPreview();
         }
     }
-
-    _hideSkinPreview() {
-        document.getElementById('skinPreviewImg').classList.add('hidden');
-        document.getElementById('skinPreviewPlaceholder').classList.remove('hidden');
-    }
-
+    
     applySkin() {
-        const url    = document.getElementById('skinUrlInput').value.trim();
-        if (!url) { alert('Введи URL скина'); return; }
-        const width  = parseFloat(document.getElementById('skinWidthSlider').value);
-        const height = parseFloat(document.getElementById('skinHeightSlider').value);
-
+        const url = this.selectedSkin;
+        if (!url) { alert('Выбери скин из списка'); return; }
         const me = this.players[this.myPlayerId];
-        if (me) me.setSkin(url, width, height);
-
+        if (me) me.setSkin(url, CONFIG.DEFAULT_SKIN_WIDTH, CONFIG.DEFAULT_SKIN_HEIGHT);
         if (!this.testMode) networkManager.sendPacket({ type: 'skin', url });
         this.closeSkinModal();
     }
-
-    updateSkinSize() {
-        const width  = parseFloat(document.getElementById('skinWidthSlider').value);
-        const height = parseFloat(document.getElementById('skinHeightSlider').value);
-        document.getElementById('widthValue').textContent  = width.toFixed(1);
-        document.getElementById('heightValue').textContent = height.toFixed(1);
-        const me = this.players[this.myPlayerId];
-        if (me) { me.skinWidth = width; me.skinHeight = height; }
+    _hideSkinPreview() {
+        document.getElementById('skinPreviewImg').classList.add('hidden');
+        document.getElementById('skinPreviewPlaceholder').classList.remove('hidden');
     }
 
     handleSkinResponse(packet) {
@@ -389,29 +364,39 @@ handleNewPlayer(packet) {
     openRoomSkinModal() {
         const grid = document.getElementById('roomSkinGrid');
         grid.innerHTML = '';
+    
+        // Предвыбираем текущий фон в гриде
+        this.selectedRoomBg = this.currentRoomBg || null;
+    
         CONFIG.ROOM_BACKGROUNDS.forEach(url => {
             const img = document.createElement('img');
             img.src = url;
             img.className = 'skin-grid-item';
+            if (url === this.selectedRoomBg) img.classList.add('selected');
             img.onclick = () => {
-                document.querySelectorAll('#roomSkinGrid .skin-grid-item').forEach(i => i.classList.remove('selected'));
+                document.querySelectorAll('#roomSkinGrid .skin-grid-item')
+                        .forEach(i => i.classList.remove('selected'));
                 img.classList.add('selected');
-                document.getElementById('roomSkinUrlInput').value = url;
+                this.selectedRoomBg = url;  // ← сохраняем в свойство, не в DOM
                 this.previewRoomSkin();
             };
             grid.appendChild(img);
         });
+    
+        // Показываем превью текущего фона сразу
+        if (this.selectedRoomBg) this.previewRoomSkin();
+    
         document.getElementById('roomSkinModal').classList.remove('hidden');
     }
-
+    
     closeRoomSkinModal() {
         document.getElementById('roomSkinModal').classList.add('hidden');
-        document.getElementById('roomSkinUrlInput').value = '';
+        this.selectedRoomBg = null;
         this._hideRoomSkinPreview();
     }
-
+    
     previewRoomSkin() {
-        const url = document.getElementById('roomSkinUrlInput').value.trim();
+        const url = this.selectedRoomBg;  // ← читаем из свойства
         const img = document.getElementById('roomSkinPreviewImg');
         if (url) {
             img.src = url;
@@ -421,40 +406,46 @@ handleNewPlayer(packet) {
             this._hideRoomSkinPreview();
         }
     }
-
-    _hideRoomSkinPreview() {
-        document.getElementById('roomSkinPreviewImg').classList.add('hidden');
-        document.getElementById('roomSkinPreviewPlaceholder').classList.remove('hidden');
-    }
-
+    
     applyRoomSkin() {
-        const url = document.getElementById('roomSkinUrlInput').value.trim();
-        if (!url) { alert('Введи URL фона'); return; }
-        if (!this.testMode) networkManager.sendPacket({ type: 'room_skin', url });
-        this.currentRoomBg = url; // ← сохраняем
+        const url = this.selectedRoomBg;  // ← читаем из свойства
+        if (!url) { alert('Выбери фон из списка'); return; }
+    
+        // ИСПРАВЛЕНО: поле 'img', а не 'url' — именно так ждёт сервер
+        if (!this.testMode) networkManager.sendPacket({ type: 'room_skin', img: url });
+    
+        this.currentRoomBg = url;
         this._applyRoomBackground(url);
         this.closeRoomSkinModal();
     }
-
+    
     handleRoomSkinResponse(packet) {
         if (packet.state === 'error') authUI.showError(packet.message || 'Failed to change room skin');
     }
 
 
     handleRoomSkinUpdate(packet) {
-        const url = packet.img || packet.url; // ← сервер шлёт img, не url
+        const url = packet.url;
         if (!url) return;
         this.currentRoomBg = url;
         this._applyRoomBackground(url);
     }
+    
 
 
 
     _applyRoomBackground(url) {
-        this.canvas.style.backgroundImage    = `url('${url}')`;
-        this.canvas.style.backgroundSize     = 'cover';
-        this.canvas.style.backgroundPosition = 'center';
+        if (!url) return;
+        // Используем полный shorthand — надёжнее перекрывает CSS файл
+        const apply = () => {
+            this.canvas.style.background = `url('${url}') center / cover no-repeat`;
+        };
+        apply();
+        // Повторяем после следующего кадра — на случай если canvas ещё не виден
+        requestAnimationFrame(apply);
     }
+    
+    
 
     // ── Room lock ───────────────────────────────────────────────
 
@@ -485,7 +476,7 @@ handleNewPlayer(packet) {
 
     changeRoomSkin(url) {
         if (!url || this.testMode) return;
-        networkManager.sendPacket({ type: 'room_skin', img: url});
+        networkManager.sendPacket({ type: 'room_skin', url });  // было img: url
         this._applyRoomBackground(url);
     }
 
@@ -500,33 +491,32 @@ handleNewPlayer(packet) {
      */
     _showFloorNav(floorId, rooms) {
         this.isInRoom = false;
-
         document.getElementById('navPanel').classList.remove('hidden');
         document.getElementById('floorNav').classList.remove('hidden');
         document.getElementById('roomNav').classList.add('hidden');
         document.getElementById('navFloorId').textContent = floorId;
-
-        // Фон комнаты нельзя менять на этаже
         document.getElementById('btnRoomSkin').classList.add('hidden');
-
-        // Строим 3 кнопки дверей
+    
         const doorList = document.getElementById('doorButtons');
         doorList.innerHTML = '';
         const roomsToShow = rooms.slice(0, 3);
-
+    
         roomsToShow.forEach((room, i) => {
+            const roomId   = room.room_id  ?? room[0];
+            const username = room.username ?? room[1];
+            const occupied = !!username;
+    
             const btn = document.createElement('button');
             btn.className = 'nav-btn nav-door-btn';
-            if (room.room_id == this.currentRoomId) btn.classList.add('active-room');
-            btn.textContent = room.username
-                ? `🚪 ${room.username}`
-                : `🚪 Комната ${i + 1}`;
-            btn.title = `Room ID: ${room.room_id}`;
-            btn.onclick = () => this._joinRoomById(room.room_id);
+            if (roomId == this.currentRoomId) btn.classList.add('active-room');
+            if (occupied) btn.classList.add('occupied-room');
+    
+            btn.textContent = occupied ? `🚪 ${username}` : `🚪 Комната ${i + 1}`;
+            btn.title = `Room ID: ${roomId}`;
+            btn.onclick = () => this._joinRoomById(roomId);
             doorList.appendChild(btn);
         });
-
-        // Заглушки если комнат меньше 3
+    
         for (let i = roomsToShow.length; i < 3; i++) {
             const btn = document.createElement('button');
             btn.className = 'nav-btn nav-door-btn';
@@ -536,7 +526,7 @@ handleNewPlayer(packet) {
             doorList.appendChild(btn);
         }
     }
-
+    
     /**
      * Показывает правую панель в режиме КОМНАТЫ:
      * только кнопка «Выйти».
@@ -634,6 +624,11 @@ handleNewPlayer(packet) {
     const id = parseInt(roomId) || 0;
     return CONFIG.ROOM_BACKGROUNDS[id % CONFIG.ROOM_BACKGROUNDS.length];
 }
+    closeSkinModal() {
+        document.getElementById('skinModal').classList.add('hidden');
+        this.selectedSkin = null;
+        this._hideSkinPreview();
+    }
 
 
 }
