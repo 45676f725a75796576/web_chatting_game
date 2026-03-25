@@ -108,55 +108,63 @@ class MultiplayerService
         $this->logger->info("player $username (id $player_id) was kicked.");
     }
 
-    private function add_session_to_collection(array &$collection, $key, Session $session)
-    {
-        if (!array_key_exists($key, $collection)) {
-            $collection[$key] = [];
-        }
-
-        if ($session->on_disconnect !== null) {
-            ($session->on_disconnect)();
-        }
-
-        $player_id = $session->data->player->get_player_id(); 
-        $session->on_disconnect = function() use (&$collection, $key, $session, $player_id) {
-            $index = array_search($session, $collection[$key], true);
-            if ($index !== false) {
-                unset($collection[$key][$index]);
-                $collection[$key] = array_values($collection[$key]);
-            }
-
-            foreach ($collection[$key] as $s) {
-                $s->send($this->packet_service->server_disconnect($player_id));
-            }
-        };
-
-        $packets = [];
-        foreach ($collection[$key] as $s) {
-            
-            if($s != $session) {
-                $s->send($this->packet_service->server_new_player(
-                    $session->data->player->get_player_id(),
-                    $session->data->player->get_username(),
-                    $session->data->player->get_img() ?? $this->asset_service->get_player_default(),
-                    $session->data->x,
-                    $session->data->y,
-                ));
-
-                array_push($packets, $this->packet_service->server_new_player(
-                    $s->data->player->get_player_id(),
-                    $s->data->player->get_username(),
-                    $s->data->player->get_img() ?? $this->asset_service->get_player_default(),
-                    $s->data->x,
-                    $s->data->y,
-                ));
-
-            }
-        }
-
-        $collection[$key][] = $session;
-        return $packets;
+private function add_session_to_collection(array &$collection, $key, Session $session)
+{
+    if (!array_key_exists($key, $collection)) {
+        $collection[$key] = [];
     }
+
+    // Call any previous disconnect callback
+    if ($session->on_disconnect !== null) {
+        ($session->on_disconnect)();
+    }
+
+    $player_id = $session->data->player->get_player_id();
+
+    // Setup disconnect callback
+    $session->on_disconnect = function() use (&$collection, $key, $session, $player_id) {
+        $index = array_search($session, $collection[$key], true);
+        if ($index !== false) {
+            unset($collection[$key][$index]);
+            $collection[$key] = array_values($collection[$key]);
+        }
+
+        foreach ($collection[$key] as $s) {
+            $s->send($this->packet_service->server_disconnect($player_id));
+        }
+    };
+
+    // Packets to send to the new session about existing players
+    $packets = [];
+    foreach ($collection[$key] as $s) {
+        // Existing players info for new player
+        array_push($packets, $this->packet_service->server_new_player(
+            $s->data->player->get_player_id(),
+            $s->data->player->get_username(),
+            $s->data->player->get_img() ?? $this->asset_service->get_player_default(),
+            $s->data->x,
+            $s->data->y
+        ));
+    }
+
+    // Add the new session to the collection
+    $collection[$key][] = $session;
+
+    // Broadcast new player info to all existing sessions except the new one
+    foreach ($collection[$key] as $s) {
+        if ($s !== $session) {
+            $s->send($this->packet_service->server_new_player(
+                $session->data->player->get_player_id(),
+                $session->data->player->get_username(),
+                $session->data->player->get_img() ?? $this->asset_service->get_player_default(),
+                $session->data->x,
+                $session->data->y
+            ));
+        }
+    }
+
+    return $packets; // To send back to the new session
+}
 
     public function join_room(Session $session, Player $player): array
     {
@@ -173,8 +181,6 @@ class MultiplayerService
         $session->data->room = $this->get_player_room($player);
         $session->data->floor = null;
 
-        $session->data->x = 0;
-        $session->data->y = 0;
         return $this->add_session_to_collection($this->rooms, $this->get_player_room($player), $session);
     }
 
@@ -395,20 +401,22 @@ class MultiplayerService
 
     public function get_floor(int $room_id) 
     {
-        return (int)($room_id / $this->room_count);
+        return intdiv($room_id - 1, $this->room_count) + 1;
     }
 
     public function get_rooms(int $floor_id)
     {
         $floor_rooms = [];
-        for($i = 1; $i < $this->room_count + 1; $i++) {
-            $id = $i + ($floor_id * 3);
+                        
+        for ($i = 1; $i <= $this->room_count; $i++) {
+            $id = $i + (($floor_id - 1) * $this->room_count);
+                        
             $player = $this->player_repository->find_by_id($id);
-            if($player != null) {
-                array_push($floor_rooms, (string)$this->get_player_room($player));
+            if ($player !== null) {
+                $floor_rooms[] = (string)$this->get_player_room($player);
             }
         }
-
+                        
         return $floor_rooms;
     }
 }
